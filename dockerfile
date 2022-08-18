@@ -5,6 +5,7 @@ WORKDIR /base
 COPY package.json . 
 COPY yarn.lock .
 COPY . .
+COPY ./types ./types
 
 RUN yarn install
 RUN yarn build 
