@@ -5,8 +5,8 @@ WORKDIR /base
 COPY package.json . 
 COPY yarn.lock .
 COPY . .
-COPY ./types ./types
 
+RUN git submodule update --init --recursive
 RUN yarn install
 RUN yarn build 
 
