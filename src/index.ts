@@ -9,14 +9,7 @@ import { Server, ServerOptions } from "socket.io";
 import tmi from "tmi.js";
 import ytdl from "ytdl-core";
 import ytsr from "ytsr";
-import {
-  ClientToServerEvents,
-  CurrentSong,
-  InterServerEvents,
-  ServerToClientEvents,
-  SocketData,
-  Song,
-} from "../types/index";
+import { ClientToServerEvents, CurrentSong, InterServerEvents, ServerToClientEvents, SocketData, Song } from "../types";
 import "./db";
 import { connection, redisClient, sub } from "./db";
 import { User } from "./db/entity/User";

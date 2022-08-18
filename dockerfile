@@ -6,7 +6,6 @@ COPY package.json .
 COPY yarn.lock .
 COPY . .
 
-RUN git submodule update --init --recursive
 RUN yarn install
 RUN yarn build 
 
