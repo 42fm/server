@@ -1,0 +1,8 @@
+/node_modules
+types/*
+
+.env
+.env.production.local
+combined.log
+error.log
+/dist
