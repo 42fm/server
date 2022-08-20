@@ -356,20 +356,22 @@ client.on("message", async (channel, tags, message, self) => {
         try {
           let info = await ytdl.getInfo(url);
 
-          if (Number(info.videoDetails.viewCount) < SONG_MIN_VIEWS) {
-            log.info("Not enough views");
-            client.say(room, `@${username}, not enough views`);
-            return;
-          }
-          if (Number(info.videoDetails.lengthSeconds) < SONG_MIN_LENGTH) {
-            log.info("Not long enough");
-            client.say(room, `@${username}, song not long enough`);
-            return;
-          }
-          if (Number(info.videoDetails.lengthSeconds) > SONG_MAX_LENGTH) {
-            log.info("Too long");
-            client.say(room, `@${username}, song too long`);
-            return;
+          if (!(isBroadcaster || isMod || isOwner)) {
+            if (Number(info.videoDetails.viewCount) < SONG_MIN_VIEWS) {
+              log.info("Not enough views");
+              client.say(room, `@${username}, not enough views`);
+              return;
+            }
+            if (Number(info.videoDetails.lengthSeconds) < SONG_MIN_LENGTH) {
+              log.info("Not long enough");
+              client.say(room, `@${username}, song not long enough`);
+              return;
+            }
+            if (Number(info.videoDetails.lengthSeconds) > SONG_MAX_LENGTH) {
+              log.info("Too long");
+              client.say(room, `@${username}, song too long`);
+              return;
+            }
           }
 
           if (SKIP_TOPIC) {
