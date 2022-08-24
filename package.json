@@ -7,7 +7,11 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "start": "node ./dist/src/index.js"
+    "start": "node ./dist/src/index.js",
+    "migration:generate": "typeorm-ts-node-esm migration:generate -d src/db/index.ts",
+    "migration:create": "typeorm-ts-node-esm migration:create",
+    "migration:run": "typeorm-ts-node-esm migration:run -d src/db/index.ts",
+    "migration:revert": "typeorm-ts-node-esm migration:revert -d src/db/index.ts"
   },
   "dependencies": {
     "@socket.io/admin-ui": "^0.4.0",
