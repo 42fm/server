@@ -26,8 +26,8 @@ router.get("/twitch", async (req, res) => {
     const response = await axios.get("https://api.twitch.tv/helix/users", {
       headers: {
         Authorization: `Bearer ${request.data.access_token}`,
-        "Client-Id": TWITCH_CLIENT_ID!
-      }
+        "Client-Id": TWITCH_CLIENT_ID!,
+      },
     });
 
     const data: TwitchAuthResponse = response.data.data[0];
@@ -40,7 +40,7 @@ router.get("/twitch", async (req, res) => {
         twitch_id: data.id,
         username: data.login,
         display_name: data.display_name,
-        email: data.email
+        email: data.email,
       });
       user = await newUser.save();
     }
@@ -48,54 +48,11 @@ router.get("/twitch", async (req, res) => {
     await client.join(user.username);
     log.info("Joined channel " + data.login);
 
-    if (process.env.NODE_ENV === "production") {
-      // OAuth client credentials flow
-      const tokenRequest = await axios.post(
-        `https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_SECRET}&grant_type=client_credentials`
-      );
-
-      const tokenData: TwitchAppAccessTokenResponse = tokenRequest.data;
-
-      try {
-        await axios.post(
-          "https://api.twitch.tv/helix/eventsub/subscriptions",
-          {
-            type: "stream.online",
-            version: "1",
-            condition: { broadcaster_user_id: user.twitch_id },
-            transport: {
-              method: "webhook",
-              // must be https to work
-              callback: `${process.env.SELF_URL}/eventsub`,
-              secret: TWITCH_EVENTS_SECRET
-            }
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${tokenData.access_token}`,
-              "Client-Id": TWITCH_CLIENT_ID!
-            }
-          }
-        );
-      } catch (e) {
-        if (e.response.status === 409 && e.response.data.message === "subscription already exists") {
-          res.send(`
-          <div>
-            42FM already added
-          </div>
-        `);
-        } else {
-          log.error(e);
-        }
-        return;
-      }
-      res.send(`
+    res.send(`
         <div>
-          <div>Successfully authenticated, you can close this window</div>
+          <div>42fm was added to your channel, you can close this window</div>
         </div>
         `);
-    }
   } catch (error) {
     log.error(error);
     res.sendStatus(500);
