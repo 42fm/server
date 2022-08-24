@@ -258,7 +258,10 @@ client.on("message", async (channel, tags, message, self) => {
         .catch((err) => log.error(err));
       return;
     } else if (args[0] === "help") {
-      client.say(room, `@${tags["display-name"]} Available commands: <link>, help, play, pause, skip, clear, disconnect`);
+      client.say(
+        room,
+        `@${tags["display-name"]} Available commands: <link>, help, play, pause, skip, clear, song, disconnect`
+      );
       return;
     } else if (args[0] === "disconnect") {
       client.say(room, `@${tags["display-name"]}, disconnecting... :(`);
@@ -285,7 +288,7 @@ client.on("message", async (channel, tags, message, self) => {
 
   // Commands for everyone
   if (args[0] === "help") {
-    client.say(room, `@${tags["display-name"]}, available commands: !fm <link>, !fm search <term>`);
+    client.say(room, `@${tags["display-name"]}, available commands: !fm <link>, !fm search <term>, !fm song, !fm wrong`);
     return;
   }
 
