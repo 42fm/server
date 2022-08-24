@@ -1,26 +1,21 @@
-import { instrument } from "@socket.io/admin-ui";
-import { Job, Queue, Worker } from "bullmq";
 import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
-import os from "os";
 import "reflect-metadata";
 import { Server, ServerOptions } from "socket.io";
 import tmi from "tmi.js";
 import ytdl from "ytdl-core";
 import ytsr from "ytsr";
 import { ClientToServerEvents, CurrentSong, InterServerEvents, ServerToClientEvents, SocketData, Song } from "../types";
-import "./db";
-import { connection, redisClient, sub } from "./db";
+import connection from "./db";
 import { User } from "./db/entity/User";
+import { redisClient, sub } from "./db/redis";
 import morganMiddleware from "./middleware/morganMiddleware";
 import auth from "./routes/auth";
-import events from "./routes/events";
 import { songs } from "./songs";
 import { log } from "./utils/loggers";
 import { sleep } from "./utils/sleep";
 
-let SONG_EXPIRATION = 18000; // 5 hours
 let SONG_MIN_VIEWS = 50_000; // 100k views
 let SONG_MIN_LENGTH = 60; // 1 minute
 let SONG_MAX_LENGTH = 600; // 10 minutes
@@ -35,7 +30,6 @@ const {
   SOCKETIO_ADMIN_PASSWORD,
   TWITCH_USERNAME,
   TWITCH_OAUTH,
-  USE_WORKERS,
   COMMAND_PREFIX,
   FM_OWNER_ID,
 } = process.env;
@@ -44,7 +38,6 @@ const app = express();
 const httpServer = createServer(app);
 
 app.use(auth);
-app.use(events);
 app.use(morganMiddleware);
 
 const options: Partial<ServerOptions> = {
@@ -71,10 +64,11 @@ export const client = new tmi.Client({
   channels: [],
 });
 
-// client.on("part", (channel, username, self) => {
-//   if (!self) return;
-//   log.info(`${username} left ${channel}`);
-// });
+client.on("part", (channel, username, self) => {
+  if (!self) return;
+  log.info(`Bot left channel: ${channel}`);
+  client.join(channel);
+});
 
 client.on("message", async (channel, tags, message, self) => {
   // Ignore echoed messages and not valid commands
@@ -506,9 +500,9 @@ sub.on("pmessage", (pattern: string, channel: string, message: string) => {
   }
 });
 
-(async function () {
+async function main() {
   await client.connect();
-  const users = await User.find();
+  const users = await User.find({ where: { channel: { isEnabled: true } } });
 
   if (!users) {
     log.info("No users found");
@@ -519,7 +513,6 @@ sub.on("pmessage", (pattern: string, channel: string, message: string) => {
     try {
       await client.join(user.username);
       log.info(`Joined ${user.username}`);
-      // await was missing thats why there are some errors in production
       await sleep(600);
     } catch (e) {
       log.info(e);
@@ -613,35 +606,7 @@ sub.on("pmessage", (pattern: string, channel: string, message: string) => {
       }
     });
   });
-})();
-
-// client
-//   .connect()
-//   .then(() => {
-//     log.info("Connected to Twitch");
-//     connection
-//       .then(() => {
-//         log.info("Connecting to channels stored in database");
-//         User.find()
-//           .then((users) => {
-//             const interval = setInterval(() => {
-//               if (users.length === 0) {
-//                 clearInterval(interval);
-//                 return;
-//               }
-//               const user = users.pop();
-//               client.join(user.username).then(() => {
-//                 log.info(`Joined channel: ${user.username}`);
-//               });
-//             }, 1200);
-//           })
-//           .catch((err) => log.error(err));
-//       })
-//       .catch((error) => {
-//         log.error("Could not connect to database", error);
-//       });
-//   })
-//   .catch((err) => log.error(err));
+}
 
 export const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, options);
 
@@ -698,7 +663,27 @@ function skipSong(room: string) {
     });
 }
 
-httpServer.listen(PORT, () => {
-  console.clear();
-  log.info(`🚀 Server started on port ${PORT}`);
-});
+// connection.initialize().then(() => {
+//   console.clear();
+//   log.info("Initialized connection to database");
+//   connection.runMigrations().then(() => {
+//     log.info("Ran migrations");
+//     httpServer.listen(PORT, () => {
+//       log.info(`🚀 Server started on port ${PORT}`);
+//     });
+//   });
+// });
+
+(async function () {
+  await connection.initialize();
+  log.info("Initialized connection to database");
+
+  await connection.runMigrations();
+  log.info("Ran migrations");
+
+  main();
+
+  httpServer.listen(PORT, () => {
+    log.info(`🚀 Server started on port ${PORT}`);
+  });
+})();
