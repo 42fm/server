@@ -1,4 +1,14 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+  Relation,
+  UpdateDateColumn,
+} from "typeorm";
+import { Channel } from "./Channel";
 
 @Entity()
 export class User extends BaseEntity {
@@ -16,6 +26,10 @@ export class User extends BaseEntity {
 
   @Column()
   email!: string;
+
+  @Column(() => Channel)
+  @JoinColumn()
+  channel: Relation<Channel>;
 
   @CreateDateColumn()
   created_at: Date;
