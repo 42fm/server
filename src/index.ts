@@ -310,7 +310,31 @@ client.on("message", async (channel, tags, message, self) => {
   }
 
   if (args[0] === "wrong") {
-    client.say(room, `@${tags["display-name"]}, coming soon`);
+    const current = await redisClient.lrange(`${room}:playlist`, 0, -1);
+    const list = current.map((item) => JSON.parse(item));
+
+    if (list.length < 1) {
+      client.say(room, `@${tags["display-name"]}, playlist empty`);
+      return;
+    }
+
+    let found;
+
+    for (let i = list.length - 1; i > -1; i--) {
+      if (list[i].username === tags["display-name"]) {
+        found = list[i];
+        break;
+      }
+    }
+
+    if (!found) {
+      client.say(room, `@${tags["display-name"]}, could not find your last added song`);
+      return;
+    }
+
+    redisClient.lrem(`${room}:playlist`, -1, JSON.stringify(found));
+
+    client.say(room, `@${tags["display-name"]}, removed your last song`);
     return;
   }
 
