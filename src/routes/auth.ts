@@ -33,7 +33,7 @@ router.get("/twitch", async (req, res) => {
     const data: TwitchAuthResponse = response.data.data[0];
 
     let user: User;
-    user = await User.findOne({ twitch_id: data.id });
+    user = await User.findOne({ where: { twitch_id: data.id } });
 
     if (!user) {
       let newUser = User.create({

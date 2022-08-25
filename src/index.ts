@@ -175,8 +175,8 @@ client.on("message", async (channel, tags, message, self) => {
         .ttl(`${room}:current`)
         .persist(`${room}:current`)
         .exec((err, replies) => {
-          const [ttlError, ttl] = replies[0];
-          const [currentError, current] = replies[1];
+          const [ttlError, ttl] = replies[0] as any;
+          const [currentError, current] = replies[1] as any;
 
           if (ttlError || currentError) {
             client.say(room, "Error while pausing");
@@ -210,8 +210,8 @@ client.on("message", async (channel, tags, message, self) => {
         .get(`${room}:current`)
         .get(`${room}:timeRemaining`)
         .exec((err, replies) => {
-          const [currentError, current] = replies[0];
-          const [timeRemainingError, timeRemaining] = replies[1];
+          const [currentError, current] = replies[0] as any;
+          const [timeRemainingError, timeRemaining] = replies[1] as any;
           // const [timeRemainingDelError, timeRemainingDel] = replies[2];
 
           if (currentError || timeRemainingError) {
@@ -435,8 +435,8 @@ client.on("message", async (channel, tags, message, self) => {
             .get(`${room}:current`)
             .lrange(`${room}:playlist`, 0, -1)
             .exec((err, replies) => {
-              const current = replies[0][1];
-              const playlist = replies[1][1];
+              const current = replies[0][1] as any;
+              const playlist = replies[1][1] as any;
 
               if (!current && playlist.length === 0) {
                 redisClient.setex(`${room}:current`, song.duration, JSON.stringify(song));
@@ -477,8 +477,8 @@ sub.on("pmessage", (pattern: string, channel: string, message: string) => {
       .lpop(`${room}:playlist`)
       .lrange(`${room}:playlist`, 0, -1)
       .exec((err, replies) => {
-        const song: string = replies[0][1];
-        const playlist: string[] = replies[1][1];
+        const song: string = replies[0][1] as any;
+        const playlist: string[] = replies[1][1] as any;
 
         if (!song) return;
 
@@ -549,8 +549,8 @@ async function main() {
         .lrange(`${data.room}:playlist`, 0, -1)
         .ttl(`${data.room}:current`)
         .exec((err, replies) => {
-          const [currentError, current] = replies[0];
-          const [playlistError, playlist] = replies[1];
+          const [currentError, current] = replies[0] as any;
+          const [playlistError, playlist] = replies[1] as any;
           const [ttlError, ttl] = replies[2];
 
           let isPlaying;
@@ -617,8 +617,8 @@ function skipSong(room: string) {
     .lpop(`${room}:playlist`)
     .lrange(`${room}:playlist`, 0, -1)
     .exec((err, replies) => {
-      const [currentError, current]: [Error, string] = replies[0];
-      const [nextSongError, nextSong]: [Error, string] = replies[1];
+      const [currentError, current] = replies[0] as any;
+      const [nextSongError, nextSong] = replies[1] as any;
 
       if (currentError || nextSongError) {
         client.say(room, "Error while skipping");
