@@ -501,22 +501,27 @@ sub.on("pmessage", (pattern: string, channel: string, message: string) => {
 });
 
 async function main() {
-  await client.connect();
-  const users = await User.find({ where: { channel: { isEnabled: true } } });
+  try {
+    await client.connect();
+    const users = await User.find({ where: { channel: { isEnabled: true } } });
 
-  if (!users) {
-    log.info("No users found");
-    return;
-  }
-
-  for (const user of users) {
-    try {
-      await client.join(user.username);
-      log.info(`Joined ${user.username}`);
-      await sleep(600);
-    } catch (e) {
-      log.info(e);
+    if (!users) {
+      log.info("No users found");
+      return;
     }
+
+    for (const user of users) {
+      try {
+        await client.join(user.username);
+        log.info(`Joined ${user.username}`);
+        await sleep(600);
+      } catch (e) {
+        log.info(e);
+      }
+    }
+  } catch (e) {
+    log.info("Eror in client conection");
+    log.error(e);
   }
 
   io.on("connection", (socket) => {
