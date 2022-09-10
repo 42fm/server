@@ -67,7 +67,21 @@ export const client = new tmi.Client({
 client.on("part", (channel, username, self) => {
   if (!self) return;
   log.info(`Bot left channel: ${channel}`);
-  client.join(channel);
+});
+
+client.on("disconnected", (reason) => {
+  // Do your stuff.
+  log.info("Got disconedted from the server", { reason });
+});
+
+client.on("reconnect", () => {
+  // Do your stuff.
+  log.info("Reconnected to server");
+});
+
+client.on("serverchange", (channel) => {
+  // Do your stuff.
+  log.info("Changed server", { channel });
 });
 
 client.on("message", async (channel, tags, message, self) => {
@@ -77,19 +91,12 @@ client.on("message", async (channel, tags, message, self) => {
   log.info(`${tags["display-name"]} send a command on ${channel}`);
 
   const room = channel.slice(1);
-
   const args = message.slice(1).split(" ");
-  log.info(args);
-  const command = args.shift().toLowerCase();
-  log.info(command);
-
-  if (command !== COMMAND_PREFIX) {
-    return;
-  }
-
   const isBroadcaster = tags.badges?.broadcaster === "1";
   const isMod = tags.mod;
   const isOwner = tags["user-id"] === FM_OWNER_ID;
+
+  log.info("Command sent", { username: tags["display-name"], channel, command: args[0], args });
 
   // Commands for owner only
   if (isOwner) {
@@ -146,9 +153,6 @@ client.on("message", async (channel, tags, message, self) => {
         return;
       }
     }
-  }
-
-  if (isOwner) {
     if (args[0] === "uptime") {
       var ut_sec = process.uptime();
       var ut_min = ut_sec / 60;
@@ -398,7 +402,7 @@ client.on("message", async (channel, tags, message, self) => {
           if (SKIP_TOPIC) {
             if (info.videoDetails.author.name.toLowerCase().includes("topic")) {
               log.info("Topic song skipping");
-              client.say(room, `@${username}, song type topic is not allowed`);
+              client.say(room, `@${username}, song type topic is not allowed try another link`);
               return;
             }
           }
@@ -468,7 +472,7 @@ client.on("message", async (channel, tags, message, self) => {
 });
 
 sub.on("pmessage", (pattern: string, channel: string, message: string) => {
-  log.info(`${pattern} ${channel} ${message}`);
+  // log.info(`${pattern} ${channel} ${message}`);
   if (message === "expired") {
     const [, room] = channel.split(":");
 
@@ -513,7 +517,7 @@ async function main() {
     for (const user of users) {
       try {
         await client.join(user.username);
-        log.info(`Joined ${user.username}`);
+        log.info("Joined channel", { channel: user.username });
         await sleep(600);
       } catch (e) {
         log.info(e);
@@ -535,13 +539,13 @@ async function main() {
       const is42fm = client.getChannels().includes(`#${data.room}`);
 
       if (!is42fm) {
-        log.info(`${data.room} is not added`);
+        log.info(`Channel is not added`, { channel: data.room });
         socket.emit("no42fm");
         socket.disconnect();
         return;
       }
 
-      log.info(`Socket ${socket.id} joining room ${data.room}`);
+      log.info("Socket joined room", { socket: socket.id, room: data.room });
       await socket.join(data.room);
 
       const sockets = await io.in(data.room).fetchSockets();
@@ -582,7 +586,7 @@ async function main() {
     });
 
     socket.on("sync", ({ room }) => {
-      log.info(`Sync event for room ${room}`);
+      log.info("Sync event", { room });
       redisClient
         .ttl(`${room}:current`)
         .then((ttl) => {
@@ -597,13 +601,13 @@ async function main() {
     socket.on("couldNotLoad", async (room) => {
       const errors = await redisClient.incr(`${room}:errors`);
       await redisClient.expire(`${room}:errors`, 10);
-      log.info(`${room}:errors`, { errors });
+      log.info("Errors", { room, errors });
 
       const sockets = await io.in(room).fetchSockets();
 
       const half = sockets.length / 2;
 
-      log.info(`Number of errors in ${room} is ${errors} and half of sockets is ${half}`);
+      log.info("Number of errors", { room, errors, half });
       if (errors > half) {
         client.say(room, "Skipping because could not load song");
         await redisClient.del(`${room}:errors`);
