@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === "development") {
 } else {
   log = createLogger({
     level: "silly",
-    format: format.combine(format.errors({ stack: true }), format.splat()),
+    format: format.combine(format.json(), format.errors({ stack: true }), format.splat()),
     transports: [new transports.Console()],
   });
 }
