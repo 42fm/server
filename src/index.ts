@@ -74,9 +74,10 @@ client.on("disconnected", (reason) => {
   log.warn("Got disconedted from the server", { reason });
 });
 
-client.on("reconnect", () => {
+client.on("reconnect", async () => {
   // Do your stuff.
   log.warn("Reconnected to server");
+  await connectToChannels();
 });
 
 client.on("serverchange", (channel) => {
@@ -504,25 +505,30 @@ sub.on("pmessage", (pattern: string, channel: string, message: string) => {
   }
 });
 
+async function connectToChannels() {
+  const users = await User.find({ where: { channel: { isEnabled: true } } });
+
+  if (!users) {
+    log.info("No users found");
+    return;
+  }
+
+  for (const user of users) {
+    try {
+      await client.join(user.username);
+      log.info("Joined channel", { channel: user.username });
+      await sleep(600);
+    } catch (e) {
+      log.info(e);
+    }
+  }
+  log.warn("Connected to channels from database");
+}
+
 async function main() {
   try {
     await client.connect();
-    const users = await User.find({ where: { channel: { isEnabled: true } } });
-
-    if (!users) {
-      log.info("No users found");
-      return;
-    }
-
-    for (const user of users) {
-      try {
-        await client.join(user.username);
-        log.info("Joined channel", { channel: user.username });
-        await sleep(600);
-      } catch (e) {
-        log.info(e);
-      }
-    }
+    await connectToChannels();
   } catch (e) {
     log.info("Eror in client conection");
     log.error(e);
