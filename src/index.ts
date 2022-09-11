@@ -66,23 +66,23 @@ export const client = new tmi.Client({
 
 client.on("part", (channel, username, self) => {
   if (!self) return;
-  log.warn(`Bot left channel: ${channel}`);
+  log.debug(`Bot left channel: ${channel}`);
 });
 
 client.on("disconnected", (reason) => {
   // Do your stuff.
-  log.warn("Got disconedted from the server", { reason });
+  log.debug("Got disconedted from the server", { reason });
 });
 
 client.on("reconnect", async () => {
   // Do your stuff.
-  log.warn("Reconnected to server");
+  log.debug("Reconnected to server");
   await connectToChannels();
 });
 
 client.on("serverchange", (channel) => {
   // Do your stuff.
-  log.warn("Changed server", { channel });
+  log.debug("Changed server", { channel });
 });
 
 client.on("message", async (channel, tags, message, self) => {
@@ -522,7 +522,7 @@ async function connectToChannels() {
       log.info(e);
     }
   }
-  log.warn("Connected to channels from database");
+  log.debug("Connected to channels from database");
 }
 
 async function main() {
