@@ -20,10 +20,20 @@ if (process.env.NODE_ENV === "development") {
   });
 } else {
   log = createLogger({
-    level: "silly",
-    format: format.combine(format.json(), format.errors({ stack: true }), format.splat()),
+    level: "warn",
+    format: format.combine(
+      format.prettyPrint(),
+      format.errors({ stack: true }),
+      format.splat(),
+      format.printf((info) => `[${info.timestamp}][${info.level}]: ${info.message} ${rest(info)}`)
+    ),
     transports: [new transports.Console()],
   });
+  // log = createLogger({
+  //   level: "warn",
+  //   format: format.combine(format.json(), format.errors({ stack: true }), format.splat()),
+  //   transports: [new transports.Console()],
+  // });
 }
 
 export { log };
