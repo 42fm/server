@@ -20,13 +20,8 @@ if (process.env.NODE_ENV === "development") {
   });
 } else {
   log = createLogger({
-    level: "warn",
-    format: format.combine(
-      format.prettyPrint(),
-      format.errors({ stack: true }),
-      format.splat(),
-      format.printf((info) => `[${info.timestamp}][${info.level}]: ${info.message} ${rest(info)}`)
-    ),
+    level: "debug",
+    format: format.combine(format.prettyPrint(), format.errors({ stack: true }), format.splat(), format.simple()),
     transports: [new transports.Console()],
   });
   // log = createLogger({
