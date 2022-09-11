@@ -507,23 +507,28 @@ sub.on("pmessage", (pattern: string, channel: string, message: string) => {
 });
 
 async function connectToChannels() {
-  const users = await User.find({ where: { channel: { isEnabled: true } } });
+  try {
+    const users = await User.find({ where: { channel: { isEnabled: true } } });
 
-  if (!users) {
-    log.info("No users found");
-    return;
-  }
-
-  for (const user of users) {
-    try {
-      await client.join(user.username);
-      log.info("Joined channel", { channel: user.username });
-      await sleep(600);
-    } catch (e) {
-      log.info(e);
+    if (!users) {
+      log.info("No users found");
+      return;
     }
+
+    for (const user of users) {
+      try {
+        await client.join(user.username);
+        log.info("Joined channel", { channel: user.username });
+        await sleep(600);
+      } catch (e) {
+        log.info(e);
+      }
+    }
+    log.debug("Connected to channels from database");
+  } catch (e) {
+    log.info("Error while connecting to channels");
+    log.error(e);
   }
-  log.debug("Connected to channels from database");
 }
 
 async function main() {
