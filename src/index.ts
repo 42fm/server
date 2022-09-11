@@ -64,36 +64,36 @@ export const client = new tmi.Client({
   channels: [],
 });
 
-const logs:string[] = [];
+const logs: string[] = [];
 
-setInterval(()=>{
-  log.info("==========================================")
-  log.info(logs.toString())
-  log.info("==========================================")
-},60000)
+setInterval(() => {
+  log.info("==========================================");
+  log.info(logs.toString());
+  log.info("==========================================");
+}, 60000);
 
 client.on("part", (channel, username, self) => {
   if (!self) return;
   log.info(`Bot left channel: ${channel}`);
-  logs.push(`channel:${channel} username:${username}`)
+  logs.push(`channel:${channel} username:${username}`);
 });
 
 client.on("disconnected", (reason) => {
   // Do your stuff.
   log.info("Got disconedted from the server", { reason });
-  logs.push(`reason:${reason}`)
+  logs.push(`reason:${reason}`);
 });
 
 client.on("reconnect", () => {
   // Do your stuff.
   log.info("Reconnected to server");
-  logs.push(`reconnect`)
+  logs.push(`reconnect`);
 });
 
 client.on("serverchange", (channel) => {
   // Do your stuff.
   log.info("Changed server", { channel });
-  logs.push(`server changed for channel:${channel}`)
+  logs.push(`server changed for channel:${channel}`);
 });
 
 client.on("message", async (channel, tags, message, self) => {
@@ -103,7 +103,7 @@ client.on("message", async (channel, tags, message, self) => {
   log.info(`${tags["display-name"]} send a command on ${channel}`);
 
   const room = channel.slice(1);
-  const args = message.slice(1).split(" ");
+  const args = [message.slice(1).split(" ")[1]];
   const isBroadcaster = tags.badges?.broadcaster === "1";
   const isMod = tags.mod;
   const isOwner = tags["user-id"] === FM_OWNER_ID;
