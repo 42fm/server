@@ -64,24 +64,36 @@ export const client = new tmi.Client({
   channels: [],
 });
 
+const logs:string[] = [];
+
+setInterval(()=>{
+  log.info("==========================================")
+  log.info(logs.toString())
+  log.info("==========================================")
+},60000)
+
 client.on("part", (channel, username, self) => {
   if (!self) return;
   log.info(`Bot left channel: ${channel}`);
+  logs.push(`channel:${channel} username:${username}`)
 });
 
 client.on("disconnected", (reason) => {
   // Do your stuff.
   log.info("Got disconedted from the server", { reason });
+  logs.push(`reason:${reason}`)
 });
 
 client.on("reconnect", () => {
   // Do your stuff.
   log.info("Reconnected to server");
+  logs.push(`reconnect`)
 });
 
 client.on("serverchange", (channel) => {
   // Do your stuff.
   log.info("Changed server", { channel });
+  logs.push(`server changed for channel:${channel}`)
 });
 
 client.on("message", async (channel, tags, message, self) => {
