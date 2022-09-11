@@ -77,6 +77,7 @@ client.on("disconnected", (reason) => {
 client.on("reconnect", async () => {
   // Do your stuff.
   log.debug("Reconnected to server");
+  await client.connect();
   await connectToChannels();
 });
 
