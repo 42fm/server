@@ -564,22 +564,30 @@ async function main() {
     });
 
     socket.on("joinRoom", async (data) => {
-      // const is42fm = client.getChannels().includes(`#${data.room}`);
-      if (!data.room) {
-        log.info(`Channel not provided`);
-        socket.emit("no42fm");
-        return;
-      }
+      // if (!data.room) {
+      //   log.info(`Channel not provided`);
+      //   socket.emit("no42fm");
+      //   return;
+      // }
 
-      const user = await User.findOne({ where: { username: data.room } });
+      // const user = await User.findOne({ where: { username: data.room } });
 
-      if (!user) {
-        log.info("Channel does not exist", { channel: data.room });
-        socket.emit("no42fm");
-        return;
-      }
+      // if (!user) {
+      //   log.info("Channel does not exist", { channel: data.room });
+      //   socket.emit("no42fm");
+      //   return;
+      // }
 
-      if (!user.channel.isEnabled) {
+      // if (!user.channel.isEnabled) {
+      //   log.info(`Channel is not enabled`, { channel: data.room });
+      //   socket.emit("no42fm");
+      //   socket.disconnect();
+      //   return;
+      // }
+
+      const is42fm = client.getChannels().includes(`#${data.room}`);
+
+      if (!is42fm) {
         log.info(`Channel is not enabled`, { channel: data.room });
         socket.emit("no42fm");
         socket.disconnect();
