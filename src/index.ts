@@ -575,6 +575,7 @@ async function main() {
       if (!user) {
         log.info("Channel does not exist", { channel: data.room });
         socket.emit("no42fm");
+        return;
       }
 
       if (!user.channel.isEnabled) {
