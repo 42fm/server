@@ -97,40 +97,41 @@ client.on("message", async (channel, tags, message, self) => {
   log.info(`${tags["display-name"]} send a command on ${channel}`);
 
   const room = channel.slice(1);
-  const args = [message.slice(1).split(" ")[1]];
+  const args = [...message.split(" ")];
+  let command = args[1];
   const isBroadcaster = tags.badges?.broadcaster === "1";
   const isMod = tags.mod;
   const isOwner = tags["user-id"] === FM_OWNER_ID;
 
-  log.info("Command sent", { username: tags["display-name"], channel, command: args[0], args });
+  log.info("Command sent", { username: tags["display-name"], channel, command: command, args });
 
   // Commands for owner only
   if (isOwner) {
-    if (args[0] === "ping") {
+    if (command === "ping") {
       client.say(room, `Pong imGlitch 👍`);
       return;
     }
-    if (args[0] === "channels") {
+    if (command === "channels") {
       const channels = client.getChannels().map((channel) => channel.slice(1));
       client.say(room, `Connected channels: ${channels.join(", ")}`);
       return;
     }
-    if (args[0] === "count") {
+    if (command === "count") {
       const count = client.getChannels().length;
       client.say(room, `Connected channels: ${count}`);
       return;
     }
-    if (args[0] === "random") {
-      args[0] = songs[Math.floor(Math.random() * songs.length)];
+    if (command === "random") {
+      command = songs[Math.floor(Math.random() * songs.length)];
     }
-    if (args[0] === "ws") {
+    if (command === "ws") {
       // return count of connected websockets
       const count = await io.fetchSockets();
       client.say(room, `Connected ws: ${count.length}`);
       return;
     }
 
-    if (args[0] === "set") {
+    if (command === "set") {
       if (args[1] === "minviews") {
         SONG_MIN_VIEWS = Number(args[2]);
         client.say(room, `Minimum views set to ${SONG_MIN_VIEWS}`);
@@ -147,7 +148,7 @@ client.on("message", async (channel, tags, message, self) => {
         return;
       }
     }
-    if (args[0] === "toggle") {
+    if (command === "toggle") {
       if (args[1] === "topic") {
         SKIP_TOPIC = !SKIP_TOPIC;
         client.say(room, `Skip topic: ${SKIP_TOPIC}`);
@@ -159,7 +160,7 @@ client.on("message", async (channel, tags, message, self) => {
         return;
       }
     }
-    if (args[0] === "uptime") {
+    if (command === "uptime") {
       var ut_sec = process.uptime();
       var ut_min = ut_sec / 60;
       var ut_hour = ut_min / 60;
@@ -179,7 +180,7 @@ client.on("message", async (channel, tags, message, self) => {
 
   // Commands for moderators
   if (isBroadcaster || isMod || isOwner) {
-    if (args[0] === "pause") {
+    if (command === "pause") {
       redisClient
         .multi()
         .ttl(`${room}:current`)
@@ -214,7 +215,7 @@ client.on("message", async (channel, tags, message, self) => {
             .catch((err) => log.error(err));
         });
       return;
-    } else if (args[0] === "play") {
+    } else if (command === "play") {
       redisClient
         .multi()
         .get(`${room}:current`)
@@ -247,10 +248,10 @@ client.on("message", async (channel, tags, message, self) => {
           // }
         });
       return;
-    } else if (args[0] === "skip") {
+    } else if (command === "skip") {
       await skipSong(room);
       return;
-    } else if (args[0] === "clear") {
+    } else if (command === "clear") {
       redisClient
         .multi()
         .del(`${room}:current`)
@@ -261,17 +262,17 @@ client.on("message", async (channel, tags, message, self) => {
         })
         .catch((err) => log.error(err));
       return;
-    } else if (args[0] === "help") {
+    } else if (command === "help") {
       client.say(
         room,
         `@${tags["display-name"]} Available commands: <link>, help, play, pause, skip, clear, song, disconnect`
       );
       return;
-    } else if (args[0] === "disconnect") {
+    } else if (command === "disconnect") {
       client.say(room, `@${tags["display-name"]}, disconnecting... :(`);
       client.part(room);
       return;
-    } else if (args[0] === "ban") {
+    } else if (command === "ban") {
       const user = args[1];
       if (!user) {
         client.say(room, `@${tags["display-name"]}, please specify a user to ban`);
@@ -279,7 +280,7 @@ client.on("message", async (channel, tags, message, self) => {
       }
       client.say(room, `@${tags["display-name"]}, ${user} banned`);
       return;
-    } else if (args[0] === "unban") {
+    } else if (command === "unban") {
       const user = args[1];
       if (!user) {
         client.say(room, `@${tags["display-name"]}, please specify a user to unban`);
@@ -291,12 +292,12 @@ client.on("message", async (channel, tags, message, self) => {
   }
 
   // Commands for everyone
-  if (args[0] === "help") {
+  if (command === "help") {
     client.say(room, `@${tags["display-name"]}, available commands: !fm <link>, !fm search <term>, !fm song, !fm wrong`);
     return;
   }
 
-  if (args[0] === "song") {
+  if (command === "song") {
     redisClient
       .get(`${room}:current`)
       .then((current) => {
@@ -313,7 +314,7 @@ client.on("message", async (channel, tags, message, self) => {
     return;
   }
 
-  if (args[0] === "wrong") {
+  if (command === "wrong") {
     const current = await redisClient.lrange(`${room}:playlist`, 0, -1);
     const list = current.map((item) => JSON.parse(item));
 
@@ -342,19 +343,29 @@ client.on("message", async (channel, tags, message, self) => {
     return;
   }
 
-  if (args[0] === "search") {
-    const search = args.slice(1).join(" ");
-    const searchResults = await ytsr(search);
-    const vid = searchResults.items.find((item) => item.type === "video");
-    if (vid.type === "video") {
-      log.info("SEARCH", { vid });
-      // client.say(room, `@${tags["display-name"]} ${vid.title}`);
-      args[0] = vid.url;
+  if (command === "search") {
+    const [_one, _two, ...search] = args;
+
+    if (!search.length) {
+      client.say(room, `@${tags["display-name"]}, no search query provided`);
+      return;
+    }
+
+    try {
+      const searchResults = await ytsr(search.join(" "));
+      const vid = searchResults.items.find((item) => item.type === "video");
+      if (vid.type === "video") {
+        log.info("SEARCH", { vid });
+        command = vid.url;
+      }
+    } catch {
+      client.say(room, `@${tags["display-name"]}, no search query provided`);
+      return;
     }
   }
 
   // Check if yt url is not valid
-  const isNotValid = !ytdl.validateURL(args[0]);
+  const isNotValid = !ytdl.validateURL(command);
 
   if (isNotValid) {
     client.say(channel, `@${tags["display-name"]}, command not valid`);
@@ -377,9 +388,9 @@ client.on("message", async (channel, tags, message, self) => {
           return;
         }
         log.info("Number of songs for user: " + totalSongsByUser);
-        log.info(`${tags["display-name"]} added ${args[0]} to the queue`);
+        log.info(`${tags["display-name"]} added ${command} to the queue`);
 
-        const url = args[0];
+        const url = command;
         const username = tags["display-name"];
 
         const id = ytdl.getVideoID(url);
@@ -552,10 +563,22 @@ async function main() {
     });
 
     socket.on("joinRoom", async (data) => {
-      const is42fm = client.getChannels().includes(`#${data.room}`);
+      // const is42fm = client.getChannels().includes(`#${data.room}`);
+      if (!data.room) {
+        log.info(`Channel not provided`);
+        socket.emit("no42fm");
+        return;
+      }
 
-      if (!is42fm) {
-        log.info(`Channel is not added`, { channel: data.room });
+      const user = await User.findOne({ where: { username: data.room } });
+
+      if (!user) {
+        log.info("Channel does not exist", { channel: data.room });
+        socket.emit("no42fm");
+      }
+
+      if (!user.channel.isEnabled) {
+        log.info(`Channel is not enabled`, { channel: data.room });
         socket.emit("no42fm");
         socket.disconnect();
         return;
