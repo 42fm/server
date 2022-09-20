@@ -77,13 +77,14 @@ client.on("disconnected", (reason) => {
 client.on("reconnect", async () => {
   // Do your stuff.
   log.debug("Trying to reconnect to server");
-});
-
-client.on("connected", async () => {
-  // Do your stuff.
-  log.debug("Connected to server");
   await connectToChannels();
 });
+
+// client.on("connected", async () => {
+//   // Do your stuff.
+//   log.debug("Connected to server");
+//   await connectToChannels();
+// });
 
 client.on("serverchange", (channel) => {
   // Do your stuff.
@@ -549,7 +550,7 @@ async function connectToChannels() {
 async function main() {
   try {
     await client.connect();
-    // await connectToChannels();
+    await connectToChannels();
   } catch (e) {
     log.info("Eror in client conection");
     log.error(e);
