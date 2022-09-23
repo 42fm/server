@@ -45,8 +45,10 @@ router.get("/twitch", async (req, res) => {
       user = await newUser.save();
     }
 
-    await client.join(user.username);
-    log.info("Joined channel " + data.login);
+    if (user.channel.isEnabled) {
+      await client.join(user.username);
+      log.info("Joined channel " + data.login);
+    }
 
     res.send(`
         <div>
