@@ -557,7 +557,7 @@ async function main() {
   }
 
   io.on("connection", (socket) => {
-    log.info("New connection", { id: socket.id });
+    log.info("New connection", { id: socket.id, ip: socket.handshake.address });
 
     socket.on("error", (err) => {
       log.info("socket error", err);
