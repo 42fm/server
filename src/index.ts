@@ -16,7 +16,7 @@ import { songs } from "./songs";
 import { log } from "./utils/loggers";
 import { sleep } from "./utils/sleep";
 
-let SONG_MIN_VIEWS = 50_000; // 100k views
+let SONG_MIN_VIEWS = 25_000; // 100k views
 let SONG_MIN_LENGTH = 60; // 1 minute
 let SONG_MAX_LENGTH = 600; // 10 minutes
 let ONE_HOUR = 3600;
@@ -42,9 +42,7 @@ app.use(morganMiddleware);
 
 const options: Partial<ServerOptions> = {
   cors: {
-    allowedHeaders: ["Access-Control-Allow-Origin"],
-    origin: ["https://www.twitch.tv"],
-    credentials: true,
+    origin: ["https://test.com"],
   },
 };
 
@@ -63,6 +61,8 @@ export const client = new tmi.Client({
   },
   channels: [],
 });
+
+export const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, options);
 
 client.on("part", (channel, username, self) => {
   if (!self) return;
@@ -557,6 +557,8 @@ async function main() {
   }
 
   io.on("connection", (socket) => {
+    socket.handshake;
+
     log.info("New connection", { id: socket.id, ip: socket.handshake.address });
 
     socket.on("error", (err) => {
@@ -665,8 +667,6 @@ async function main() {
     });
   });
 }
-
-export const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, options);
 
 function skipSong(room: string) {
   return redisClient
