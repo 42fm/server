@@ -4,6 +4,7 @@ import { createServer } from "http";
 import "reflect-metadata";
 import { Server, ServerOptions } from "socket.io";
 import tmi from "tmi.js";
+import health from "./routes/health";
 import ytdl from "ytdl-core";
 import ytsr from "ytsr";
 import { ClientToServerEvents, CurrentSong, InterServerEvents, ServerToClientEvents, SocketData, Song } from "../types";
@@ -37,6 +38,7 @@ const {
 const app = express();
 const httpServer = createServer(app);
 
+app.use(health);
 app.use(auth);
 app.use(morganMiddleware);
 
