@@ -439,7 +439,7 @@ client.on("message", async (channel, tags, message, self) => {
             artist: info.videoDetails.author.name,
             // artist: info.videoDetails.media.artist || info.videoDetails.author.name,
             url: format?.url,
-            imgUrl: info.videoDetails.author.thumbnails?.at(-1)?.url,
+            imgUrl: info.videoDetails.author.thumbnails[info.videoDetails.author.thumbnails.length - 1].url,
             duration: Number(info.videoDetails.lengthSeconds),
           };
 
