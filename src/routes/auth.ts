@@ -14,7 +14,7 @@ router.use(morganMiddleware);
 router.get("/twitch", async (req, res) => {
   let code = req.query.code;
 
-  if (!code) {
+  if (!code || typeof code !== "string") {
     log.info("No code was provided", { code });
     return res.sendStatus(400);
   }
