@@ -26,10 +26,13 @@ router.get("/twitch", async (req, res) => {
       new URLSearchParams({
         client_id: TWITCH_CLIENT_ID,
         client_secret: TWITCH_SECRET,
+        code,
         grant_type: "authorization_code",
         redirect_uri: CALLBACK_URL,
-        code,
-      })
+      }).toString(),
+      {
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+      }
     );
 
     // Get User Info
