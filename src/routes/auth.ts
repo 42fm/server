@@ -14,12 +14,22 @@ router.use(morganMiddleware);
 router.get("/twitch", async (req, res) => {
   let code = req.query.code;
 
-  if (!code) return res.sendStatus(400);
+  if (!code) {
+    log.info("No code was provided", { code });
+    return res.sendStatus(400);
+  }
 
   try {
     // Get Access Token (OAuth authorization code flow)
     const request = await axios.post(
-      `https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${CALLBACK_URL}`
+      "https://id.twitch.tv/oauth2/token",
+      new URLSearchParams({
+        client_id: TWITCH_CLIENT_ID,
+        client_secret: TWITCH_SECRET,
+        grant_type: "authorization_code",
+        redirect_uri: CALLBACK_URL,
+        code,
+      })
     );
 
     // Get User Info
