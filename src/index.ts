@@ -311,7 +311,7 @@ client.on("message", async (channel, tags, message, self) => {
 
         const currentSong: CurrentSong = JSON.parse(current);
 
-        client.say(room, `@${tags["display-name"]}, currently playing: "${currentSong.title}"`);
+        client.say(room, `@${tags["display-name"]}, currently playing: "${currentSong.url}"`);
       })
       .catch((err) => log.error(err));
     return;
