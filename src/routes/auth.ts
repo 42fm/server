@@ -35,8 +35,11 @@ router.get("/twitch", async (req: Request, res: Response) => {
       )
       .catch((e) => {
         if (e.response) {
+          // @ts-ignore
           console.log(e.response.data);
+          // @ts-ignore
           console.log(e.response.status);
+          // @ts-ignore
           console.log(e.response.headers);
         }
       });
