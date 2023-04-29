@@ -1,5 +1,6 @@
 import axios from "axios";
-import { Router } from "express";
+import { Request, Response, Router } from "express";
+import jwt from "jsonwebtoken";
 import { User } from "../db/entity/User";
 import { client } from "../index";
 import morganMiddleware from "../middleware/morganMiddleware";
@@ -11,7 +12,7 @@ const { TWITCH_CLIENT_ID, TWITCH_SECRET, CALLBACK_URL, TWITCH_EVENTS_SECRET } = 
 
 router.use(morganMiddleware);
 
-router.get("/twitch", async (req, res) => {
+router.get("/twitch", async (req: Request, res: Response) => {
   let code = req.query.code;
 
   if (!code || typeof code !== "string") {
@@ -21,19 +22,24 @@ router.get("/twitch", async (req, res) => {
 
   try {
     // Get Access Token (OAuth authorization code flow)
-    const request = await axios.post(
-      "https://id.twitch.tv/oauth2/token",
-      new URLSearchParams({
-        client_id: TWITCH_CLIENT_ID,
-        client_secret: TWITCH_SECRET,
-        code,
-        grant_type: "authorization_code",
-        redirect_uri: CALLBACK_URL,
-      }).toString(),
-      {
-        headers: { "content-type": "application/x-www-form-urlencoded" },
-      }
-    );
+    const request = await axios
+      .post(
+        "https://id.twitch.tv/oauth2/token",
+        new URLSearchParams({
+          client_id: TWITCH_CLIENT_ID,
+          client_secret: TWITCH_SECRET,
+          code,
+          grant_type: "authorization_code",
+          redirect_uri: CALLBACK_URL,
+        })
+      )
+      .catch((e) => {
+        if (e.response) {
+          console.log(e.response.data);
+          console.log(e.response.status);
+          console.log(e.response.headers);
+        }
+      });
 
     // Get User Info
     const response = await axios.get("https://api.twitch.tv/helix/users", {
@@ -63,16 +69,62 @@ router.get("/twitch", async (req, res) => {
       log.info("Joined channel " + data.login);
     }
 
+    // const token = jwt.sign({ id: user.id }, "test123");
+
+    // console.log(token);
+
+    // res.cookie("access_token", token.toString(), {
+    //   // sameSite: "none",
+    //   // secure: false,
+    //   httpOnly: true,
+    // });
+
+    // res.cookie("rememberme", "1", { expires: new Date(Date.now() + 900000), httpOnly: true });
+
     res.send(`
-        <div>
-          <div>42fm was added to your channel, you can close this window</div>
-        </div>
+        <html>
+          <body style="witht:100vw;height:100vh;display:flex;align-items:center;justify-content:center">
+            Channel added, you can close this window.
+          </body>
+        </html>
         `);
   } catch (error) {
     log.error(error);
     res.sendStatus(500);
   }
 });
+
+router.get("/me", async (req, res) => {
+  try {
+    const token = req.cookies["access_token"];
+
+    if (!token) {
+      return res.sendStatus(401);
+    }
+
+    const payload = jwt.verify(token, "test123") as { id: string };
+
+    const user = await User.findOne({ where: { id: Number(payload.id) } });
+
+    return res.json({ id: user.id, username: user.username });
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
+
+// router.get("/channel/bot", auth, async (req, res) => {
+//   // @ts-ignore
+//   const user = await User.findOne({ where: { id: req.user.id }, select: { channel: { isEnabled: true } } });
+
+//   console.log(user);
+
+//   res.json({ connected: user.channel.isEnabled });
+// });
+
+// router.post("/channel/bot", auth, async (req,res) => {
+
+// })
 
 export default router;
 
