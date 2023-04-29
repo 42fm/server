@@ -23,7 +23,7 @@ router.get("/twitch", async (req: Request, res: Response) => {
   try {
     // Get Access Token (OAuth authorization code flow)
     const request = await axios
-      .post(
+      .post<TwitchAppAccessTokenResponse>(
         "https://id.twitch.tv/oauth2/token",
         new URLSearchParams({
           client_id: TWITCH_CLIENT_ID,
@@ -35,14 +35,15 @@ router.get("/twitch", async (req: Request, res: Response) => {
       )
       .catch((e) => {
         if (e.response) {
-          // @ts-ignore
           console.log(e.response.data);
-          // @ts-ignore
           console.log(e.response.status);
-          // @ts-ignore
           console.log(e.response.headers);
         }
       });
+
+    if (!request) {
+      return;
+    }
 
     // Get User Info
     const response = await axios.get("https://api.twitch.tv/helix/users", {
