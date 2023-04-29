@@ -18,26 +18,18 @@ router.get("/twitch", async (req: Request, res: Response) => {
   }
 
   try {
+    // https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=as9g1b0p5gcioxg2u02imxsh2xknzr&redirect_uri=https://api.42fm.app/twitch&scope=user:read:email
     // Get Access Token (OAuth authorization code flow)
-    const request = await axios
-      .post<TwitchAppAccessTokenResponse>(
-        "https://id.twitch.tv/oauth2/token",
-        new URLSearchParams({
-          client_id: TWITCH_CLIENT_ID,
-          client_secret: TWITCH_SECRET,
-          code,
-          grant_type: "authorization_code",
-          redirect_uri: CALLBACK_URL,
-        })
-      )
-      .catch((e) => {
-        if (e.response) {
-          console.log(e.response.data);
-          console.log(e.response.status);
-          console.log(e.response.headers);
-        }
-        console.log("catch");
-      });
+    const request = await axios.post<TwitchAppAccessTokenResponse>(
+      "https://id.twitch.tv/oauth2/token",
+      new URLSearchParams({
+        client_id: TWITCH_CLIENT_ID,
+        client_secret: TWITCH_SECRET,
+        code,
+        grant_type: "authorization_code",
+        redirect_uri: CALLBACK_URL,
+      })
+    );
 
     if (!request) {
       console.log("request");
@@ -51,6 +43,8 @@ router.get("/twitch", async (req: Request, res: Response) => {
         "Client-Id": TWITCH_CLIENT_ID!,
       },
     });
+
+    console.log("After response 2");
 
     const data: TwitchAuthResponse = response.data.data[0];
 
@@ -67,10 +61,13 @@ router.get("/twitch", async (req: Request, res: Response) => {
       user = await newUser.save();
     }
 
+    console.log("Before join");
+
     if (user.channel.isEnabled) {
       await client.join(user.username);
       log.info("Joined channel " + data.login);
     }
+    console.log("After Join");
 
     // const token = jwt.sign({ id: user.id }, "test123");
 
@@ -153,3 +150,6 @@ interface TwitchAppAccessTokenResponse {
   scope: string[];
   token_type: string;
 }
+
+// error: Twitch auth error: {"0":"N","1":"o","10":"e","11":" ","12":"f","13":"r","14":"o","15":"m","16":" ","17":"T","18":"w","19":"i","2":" ","20":"t","21":"c","22":"h","23":".","3":"r","4":"e","5":"s","6":"p","7":"o","8":"n","9":"s"}
+// Noe from Twitch. response
