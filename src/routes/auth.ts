@@ -3,14 +3,11 @@ import { Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../db/entity/User";
 import { client } from "../index";
-import morganMiddleware from "../middleware/morganMiddleware";
 import { log } from "../utils/loggers";
 
 const router = Router();
 
 const { TWITCH_CLIENT_ID, TWITCH_SECRET, CALLBACK_URL, TWITCH_EVENTS_SECRET } = process.env;
-
-router.use(morganMiddleware);
 
 router.get("/twitch", async (req: Request, res: Response) => {
   let code = req.query.code;
@@ -39,9 +36,11 @@ router.get("/twitch", async (req: Request, res: Response) => {
           console.log(e.response.status);
           console.log(e.response.headers);
         }
+        console.log("catch");
       });
 
     if (!request) {
+      console.log("request");
       return;
     }
 
@@ -93,7 +92,8 @@ router.get("/twitch", async (req: Request, res: Response) => {
         </html>
         `);
   } catch (error) {
-    log.error(error);
+    console.log(error);
+    log.error("Twitch auth error:", error);
     res.sendStatus(500);
   }
 });
