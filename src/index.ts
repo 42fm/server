@@ -326,7 +326,7 @@ client.on("message", async (channel, tags, message, self) => {
 
         const currentSong: CurrentSong = JSON.parse(current);
 
-        responder.respondWithMention(`currently playing: "${currentSong.url}"`);
+        responder.respondWithMention(`currently playing: "${currentSong.yt_id}"`);
       })
       .catch((err) => log.error(err));
     return;
@@ -488,9 +488,9 @@ client.on("message", async (channel, tags, message, self) => {
             yt_id: id,
             title,
             artist: channelName,
-            url: "https://youtube.com/",
-            imgUrl:
-              "https://static-cdn.jtvnw.net/jtv_user_pictures/c8f064a7-364f-460c-b668-75beb734e3aa-profile_image-70x70.png",
+            url: "https://youtube.com/" + id,
+            imgUrl: null,
+            // "https://static-cdn.jtvnw.net/jtv_user_pictures/c8f064a7-364f-460c-b668-75beb734e3aa-profile_image-70x70.png",
             duration,
             username,
           };
