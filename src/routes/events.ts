@@ -1,12 +1,7 @@
-import axios from "axios";
-import { Router, raw, response } from "express";
-import { User } from "../db/entity/User";
-import cors from "cors";
-import { client, io } from "../index";
+import { raw, Router } from "express";
 import crypto from "node:crypto";
-
-import morganMiddleware from "../middleware/morganMiddleware";
-import { log } from "../utils/loggers";
+import { client, io } from "../index.js";
+import { log } from "../utils/loggers.js";
 
 const router = Router();
 
@@ -41,10 +36,7 @@ router.post("/eventsub", raw({ type: "application/json" }), async (req, res) => 
       // TODO: Do something with the event's data.
       if (notification.subscription.type === "stream.online") {
         log.info(`Pausing ${notification.event.broadcaster_user_login} because they went live`);
-        client.say(
-          notification.event.broadcaster_user_login.toLowerCase(),
-          "Pausing because streamer went live PogChamp"
-        );
+        client.say(notification.event.broadcaster_user_login.toLowerCase(), "Pausing because streamer went live PogChamp");
         io.in(notification.event.broadcaster_user_login.toLowerCase()).emit("pause");
       }
 
@@ -83,10 +75,7 @@ function getHmacMessage(request: any) {
 
 // Get the HMAC.
 function getHmac(secret: any, message: any) {
-  return crypto
-    .createHmac("sha256", secret)
-    .update(message)
-    .digest("hex");
+  return crypto.createHmac("sha256", secret).update(message).digest("hex");
 }
 
 // Verify whether our hash matches the hash that Twitch passed in the header.
