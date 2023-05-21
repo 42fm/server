@@ -1,13 +1,12 @@
 {
   "name": "twitch-music-server",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "private": true,
   "license": "MIT",
   "scripts": {
     "dev": "ts-node-dev -r dotenv/config --respawn --transpile-only src/index.ts",
-    "gcp-build": "tsc -p .",
-    "start": "ts-node-esm ./dist/src/index.js",
+    "start": "node ./dist/index.js",
     "build": "tsc -p .",
     "migration:generate": "typeorm-ts-node-esm migration:generate -d src/db/index.ts",
     "migration:create": "typeorm-ts-node-esm migration:create",
@@ -15,12 +14,12 @@
     "migration:revert": "typeorm-ts-node-esm migration:revert -d src/db/index.ts"
   },
   "dependencies": {
+    "@googleapis/youtube": "^9.0.0",
     "@socket.io/admin-ui": "^0.4.0",
     "@socket.io/redis-adapter": "^7.1.0",
     "@types/cookie-parser": "^1.4.3",
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.17",
-    "@types/ioredis": "^4.28.7",
     "@types/jsonwebtoken": "^8.5.8",
     "@types/morgan": "^1.9.3",
     "@types/tmi.js": "^1.8.1",
@@ -29,10 +28,13 @@
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.0.1",
+    "esbuild": "^0.17.19",
     "express": "^4.17.2",
-    "ioredis": "^5.2.3",
+    "ioredis": "^5.3.2",
+    "iso8601-duration": "^2.1.1",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.10.0",
+    "node-fetch": "^3.3.1",
     "passport": "^0.5.2",
     "passport-oauth": "^1.0.0",
     "pg": "^8.7.1",
@@ -41,11 +43,14 @@
     "tmi.js": "^1.8.5",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
-    "typeorm": "^0.3.7",
+    "typeorm": "^0.3.16",
     "typescript": "^4.5.5",
     "winston": "^3.5.1",
-    "ytdl-core": "4.10.0",
+    "ytdl-core": "^4.11.4",
     "ytsr": "^3.6.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "strip-comments": "^2.0.1",
+    "tsx": "^3.12.7"
+  }
 }
