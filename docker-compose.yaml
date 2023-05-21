@@ -1,0 +1,46 @@
+version: "3.9"
+
+name: 42fm
+
+# building doesnt work if we add volume to be the root folder
+services:
+  server:
+    build: .
+    ports:
+      - "5000:5000"
+    # volumes:
+    #   - .:/app
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DB_HOST=postgres
+      - DB_NAME=test
+      - DB_PASSWORD=test
+      - DB_USERNAME=test
+    links:
+      - redis
+      - postgres
+    depends_on:
+      - redis
+      - postgres
+  redis:
+    image: redis
+    command: redis-server --notify-keyspace-events Kx
+    volumes:
+      - redisDB:/data
+    ports:
+      - "6379:6379"
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: "test"
+      POSTGRES_USER: "test"
+      POSTGRES_PASSWORD: "test"
+    volumes:
+      - progresDB:/var/lib/postgresql/data
+
+volumes:
+  progresDB:
+  redisDB:

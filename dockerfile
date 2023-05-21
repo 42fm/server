@@ -1,16 +1,14 @@
-FROM node:17
+FROM node:20
 
-WORKDIR /base
+WORKDIR /app
 
 COPY package.json . 
 COPY yarn.lock .
-COPY . .
 
 RUN yarn install
+
+COPY . .
+
 RUN yarn build 
 
-ENV PORT 8080
-
-EXPOSE 8080
-
-CMD ["node --loader tsnode/esm", "./dist/src/index.js"]
+CMD ["node", "dist/index.js"]
