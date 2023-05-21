@@ -4,13 +4,14 @@
     "experimentalDecorators": true,
     "module": "CommonJS",
     "esModuleInterop": true,
-    "target": "ES6",
+    "target": "ESNext",
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "dist",
+    "rootDir": "src",
     "baseUrl": "./",
-    "typeRoots": ["types", "node_modules/@types"]
+    "typeRoots": ["./types", "node_modules/@types"]
   },
-  "include": ["src/**/*"]
+  "include": ["src/", "types/"]
 }
