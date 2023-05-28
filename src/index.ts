@@ -25,10 +25,10 @@ const youtubeApi = youtube({
   version: "v3",
 });
 
-let SONG_MIN_VIEWS = 25_000; // 25k views
+let SONG_MIN_VIEWS = 10_000; // 15k views
 let SONG_MIN_LENGTH = 60; // 1 minute
-let SONG_MAX_LENGTH = 600; // 10 minutes
-let ONE_HOUR = 3600;
+let SONG_MAX_LENGTH = 1200; // 20 minutes
+let ONE_HOUR = 3600 * 2;
 let SKIP_TOPIC = false;
 let SONG_COMMAND = false;
 
