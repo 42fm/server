@@ -1,6 +1,5 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { Request, Response, Router } from "express";
-import jwt from "jsonwebtoken";
 import { User } from "../db/entity/User";
 import { client } from "../index";
 import { log } from "../utils/loggers";
@@ -17,10 +16,11 @@ router.get("/twitch", async (req: Request, res: Response) => {
     return res.sendStatus(400);
   }
 
+  // https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=as9g1b0p5gcioxg2u02imxsh2xknzr&redirect_uri=https://api.42fm.app/twitch&scope=user:read:email
+  // Get Access Token (OAuth authorization code flow)
+  let request: AxiosResponse<TwitchAppAccessTokenResponse, any> = null;
   try {
-    // https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=as9g1b0p5gcioxg2u02imxsh2xknzr&redirect_uri=https://api.42fm.app/twitch&scope=user:read:email
-    // Get Access Token (OAuth authorization code flow)
-    const request = await axios.post<TwitchAppAccessTokenResponse>(
+    request = await axios.post<TwitchAppAccessTokenResponse>(
       "https://id.twitch.tv/oauth2/token",
       new URLSearchParams({
         client_id: TWITCH_CLIENT_ID,
@@ -30,89 +30,137 @@ router.get("/twitch", async (req: Request, res: Response) => {
         redirect_uri: CALLBACK_URL,
       })
     );
+  } catch {
+    return res.sendStatus(500);
+  }
 
-    if (!request) {
-      console.log("request");
-      return;
-    }
+  // if (request) {
+  //   res.send(500);
+  // }
 
-    // Get User Info
-    const response = await axios.get("https://api.twitch.tv/helix/users", {
+  // Get User Info
+  let response: AxiosResponse<{ data: TwitchAuthResponse[] }, any>;
+  try {
+    response = await axios.get("https://api.twitch.tv/helix/users", {
       headers: {
         Authorization: `Bearer ${request.data.access_token}`,
         "Client-Id": TWITCH_CLIENT_ID!,
       },
     });
+  } catch {
+    return res.sendStatus(500);
+  }
 
-    console.log("After response 2");
+  const data: TwitchAuthResponse = response.data.data[0];
 
-    const data: TwitchAuthResponse = response.data.data[0];
+  let user: User | null;
+  user = await User.findOne({ where: { twitch_id: data.id } });
 
-    let user: User;
-    user = await User.findOne({ where: { twitch_id: data.id } });
+  if (!user) {
+    let newUser = User.create({
+      twitch_id: data.id,
+      username: data.login,
+      display_name: data.display_name,
+      email: data.email,
+    });
+    user = await newUser.save();
+  }
 
-    if (!user) {
-      let newUser = User.create({
-        twitch_id: data.id,
-        username: data.login,
-        display_name: data.display_name,
-        email: data.email,
+  if (user.channel.isEnabled) {
+    try {
+      let channel = await client.join(user.username);
+      log.info("Joined channel " + channel[0]);
+    } catch (error) {
+      log.error("Unable to join channel", {
+        username: user.username,
+        error,
       });
-      user = await newUser.save();
+      res.send(`
+      <html>
+        <body style="witht:100vw;height:100vh;display:flex;align-items:center;justify-content:center">
+          Channel added, but the bot did not join the channel yet.
+        </body>
+      </html>
+      `);
     }
+  }
 
-    console.log("Before join");
+  // const token = jwt.sign({ id: user.id }, "test123");
 
-    if (user.channel.isEnabled) {
-      await client.join(user.username);
-      log.info("Joined channel " + data.login);
-    }
-    console.log("After Join");
+  // console.log(token);
 
-    // const token = jwt.sign({ id: user.id }, "test123");
+  // res.cookie("access_token", token.toString(), {
+  //   // sameSite: "none",
+  //   // secure: false,
+  //   httpOnly: true,
+  // });
 
-    // console.log(token);
+  // res.cookie("rememberme", "1", { expires: new Date(Date.now() + 900000), httpOnly: true });
 
-    // res.cookie("access_token", token.toString(), {
-    //   // sameSite: "none",
-    //   // secure: false,
-    //   httpOnly: true,
-    // });
-
-    // res.cookie("rememberme", "1", { expires: new Date(Date.now() + 900000), httpOnly: true });
-
-    res.send(`
+  res.send(`
         <html>
           <body style="witht:100vw;height:100vh;display:flex;align-items:center;justify-content:center">
             Channel added, you can close this window.
           </body>
         </html>
         `);
-  } catch (error) {
-    console.log(error);
-    log.error("Twitch auth error:", error);
-    res.sendStatus(500);
-  }
 });
 
-router.get("/me", async (req, res) => {
-  try {
-    const token = req.cookies["access_token"];
+// router.get("/me", async (req, res) => {
+//   try {
+//     const token = req.cookies["access_token"];
 
-    if (!token) {
-      return res.sendStatus(401);
-    }
+//     if (!token) {
+//       return res.sendStatus(401);
+//     }
 
-    const payload = jwt.verify(token, "test123") as { id: string };
+//     const payload = jwt.verify(token, "test123") as { id: string };
 
-    const user = await User.findOne({ where: { id: Number(payload.id) } });
+//     const user = await User.findOne({ where: { id: Number(payload.id) } });
 
-    return res.json({ id: user.id, username: user.username });
-  } catch (err) {
-    console.log(err);
-    res.sendStatus(500);
-  }
+//     if (!user) {
+//       res.json({ message: "User not found" });
+//       return;
+//     }
+
+//     return res.json({ id: user.id, username: user.username });
+//   } catch (err) {
+//     console.log(err);
+//     res.sendStatus(500);
+//   }
+// });
+
+router.get("/twitch/mobile", async (req: Request, res: Response) => {
+  console.log(req.query);
+  console.log(req.params);
+
+  res.redirect("fm://twitch/mobile");
 });
+
+// router.get("/twitch/user/:id", async (req: Request, res: Response) => {
+//   // get id
+//   const id = req.params.id;
+
+//   if (!id || typeof id !== "string") {
+//     return res.json({ message: "Invalid id" });
+//   }
+
+//   // Get User Info
+//   let response:AxiosResponse<{data: TwitchAuthResponse[]}, any>
+
+//   try {
+//     response = await axios.get("https://api.twitch.tv/helix/users", {
+//      headers: {
+//        Authorization: `Bearer ${request.data.access_token}`,
+//        "Client-Id": TWITCH_CLIENT_ID!,
+//      },
+//    });
+//   }  catch {
+//     return res.sendStatus(500)
+//   }
+
+//   const data: TwitchAuthResponse = response.data.data[0];
+// });
 
 // router.get("/channel/bot", auth, async (req, res) => {
 //   // @ts-ignore
@@ -124,7 +172,6 @@ router.get("/me", async (req, res) => {
 // });
 
 // router.post("/channel/bot", auth, async (req,res) => {
-
 // })
 
 export default router;
