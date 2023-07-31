@@ -9,7 +9,6 @@ import "reflect-metadata";
 import { Server, ServerOptions } from "socket.io";
 import tmi from "tmi.js";
 import ytdl from "ytdl-core";
-import ytsr from "ytsr";
 import { User } from "./db/entity/User";
 import connection from "./db/index";
 import { redisClient, sub } from "./db/redis";
@@ -365,19 +364,21 @@ client.on("message", async (channel, tags, message, self) => {
     const [_one, _two, ...search] = args;
 
     if (!search.length) {
-      responder.respondWithMention(`no search query provided`);
+      responder.respondWithMention(`no search provided`);
       return;
     }
 
     try {
-      const searchResults = await ytsr(search.join(" "));
-      const vid = searchResults.items.find((item) => item.type === "video");
-      if (vid!.type === "video") {
-        log.info("SEARCH", { vid });
-        command = vid.url;
-      }
+      const response = await youtubeApi.search.list({
+        part: ["snippet"],
+        maxResults: 5,
+        q: search.join(" "),
+        key: process.env.GOOGLE_API_KEY,
+      });
+
+      command = `https://youtu.be/${response.data.items[0].id.videoId}`;
     } catch {
-      responder.respondWithMention(`no search query provided`);
+      responder.respondWithMention(`Unable to find video`);
       return;
     }
   }
