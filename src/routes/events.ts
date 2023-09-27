@@ -1,7 +1,8 @@
+import { client } from "constants/tmi.js";
 import { raw, Router } from "express";
 import crypto from "node:crypto";
-import { client, io } from "../index.js";
-import { log } from "../utils/loggers.js";
+import { io } from "../index.js";
+import { logger } from "../utils/loggers.js";
 
 const router = Router();
 
@@ -35,7 +36,7 @@ router.post("/eventsub", raw({ type: "application/json" }), async (req, res) => 
     if (MESSAGE_TYPE_NOTIFICATION === req.headers[MESSAGE_TYPE]) {
       // TODO: Do something with the event's data.
       if (notification.subscription.type === "stream.online") {
-        log.info(`Pausing ${notification.event.broadcaster_user_login} because they went live`);
+        logger.info(`Pausing ${notification.event.broadcaster_user_login} because they went live`);
         client.say(notification.event.broadcaster_user_login.toLowerCase(), "Pausing because streamer went live PogChamp");
         io.in(notification.event.broadcaster_user_login.toLowerCase()).emit("pause");
       }

@@ -1,10 +1,10 @@
 import { TransformableInfo } from "logform";
 import winston, { createLogger, format, transports } from "winston";
 
-let log: winston.Logger;
+let logger: winston.Logger;
 
 if (process.env.NODE_ENV === "development") {
-  log = createLogger({
+  logger = createLogger({
     level: "silly",
     format: format.combine(
       format.colorize(),
@@ -19,7 +19,7 @@ if (process.env.NODE_ENV === "development") {
     transports: [new transports.Console()],
   });
 } else {
-  log = createLogger({
+  logger = createLogger({
     level: "debug",
     format: format.combine(format.prettyPrint(), format.errors({ stack: true }), format.splat(), format.simple()),
     transports: [new transports.Console()],
@@ -31,7 +31,7 @@ if (process.env.NODE_ENV === "development") {
   // });
 }
 
-export { log };
+export { logger };
 
 function rest(info: TransformableInfo) {
   return JSON.stringify(

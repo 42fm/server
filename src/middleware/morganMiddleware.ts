@@ -1,9 +1,9 @@
 import morgan, { StreamOptions } from "morgan";
-import { log } from "../utils/loggers";
+import { logger } from "../utils/loggers";
 
 const stream: StreamOptions = {
   // Use the http severity
-  write: (message) => log.http(message),
+  write: (message) => logger.http(message),
 };
 
 // Build the morgan middleware

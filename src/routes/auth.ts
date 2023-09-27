@@ -1,8 +1,8 @@
 import axios, { AxiosResponse } from "axios";
 import { Request, Response, Router } from "express";
+import { client } from "../constants/tmi";
 import { User } from "../db/entity/User";
-import { client } from "../index";
-import { log } from "../utils/loggers";
+import { logger } from "../utils/loggers";
 
 const router = Router();
 
@@ -12,7 +12,7 @@ router.get("/twitch", async (req: Request, res: Response) => {
   let code = req.query.code;
 
   if (!code || typeof code !== "string") {
-    log.info("No code was provided", { code });
+    logger.info("No code was provided", { code });
     return res.sendStatus(400);
   }
 
@@ -69,9 +69,9 @@ router.get("/twitch", async (req: Request, res: Response) => {
   if (user.channel.isEnabled) {
     try {
       let channel = await client.join(user.username);
-      log.info("Joined channel " + channel[0]);
+      logger.info("Joined channel " + channel[0]);
     } catch (error) {
-      log.error("Unable to join channel", {
+      logger.error("Unable to join channel", {
         username: user.username,
         error,
       });
