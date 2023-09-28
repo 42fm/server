@@ -5,11 +5,13 @@ name: 42fm
 # building doesnt work if we add volume to be the root folder
 services:
   server:
-    build: .
+    build:
+      context: .
+    command: yarn dev:docker
     ports:
       - "5000:5000"
-    # volumes:
-    #   - .:/app
+    volumes:
+      - ./:/app
     environment:
       - REDIS_URL=redis://redis:6379/0
       - DB_HOST=postgres
@@ -31,7 +33,6 @@ services:
       - "6379:6379"
   postgres:
     image: postgres
-    restart: always
     ports:
       - "5432:5432"
     environment:
