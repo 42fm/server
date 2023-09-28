@@ -1,49 +1,28 @@
-import { youtube } from "@googleapis/youtube";
+import { router } from "@commands/index";
+import { io } from "@constants/io";
+import { client } from "@constants/tmi";
+import { User } from "@db/entity/User";
+import connection from "@db/index";
+import { redisClient, sub } from "@db/redis";
+import { Queue } from "@lib/queue";
+import { Responder } from "@lib/responder";
+import morganMiddleware from "@middleware/morganMiddleware";
+import auth from "@routes/auth";
+import health from "@routes/health";
+import { logger } from "@utils/loggers";
+import { parseMessage } from "@utils/parser";
+import { sleep } from "@utils/sleep";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
-import { parse, toSeconds } from "iso8601-duration";
 import "reflect-metadata";
-import { Server, ServerOptions } from "socket.io";
-import tmi from "tmi.js";
-import ytdl from "ytdl-core";
-import { User } from "./db/entity/User";
-import connection from "./db/index";
-import { redisClient, sub } from "./db/redis";
-import morganMiddleware from "./middleware/morganMiddleware";
-import auth from "./routes/auth";
-import health from "./routes/health";
-import { songs } from "./songs";
-import { log } from "./utils/loggers";
-import { Responder } from "./utils/reply";
-import { sleep } from "./utils/sleep";
 
-const youtubeApi = youtube({
-  version: "v3",
-});
-
-let SONG_MIN_VIEWS = 10_000; // 15k views
-let SONG_MIN_LENGTH = 60; // 1 minute
-let SONG_MAX_LENGTH = 1200; // 20 minutes
-let ONE_HOUR = 3600 * 2;
-let SKIP_TOPIC = false;
-let SONG_COMMAND = false;
-
-const {
-  NODE_ENV,
-  PORT,
-  SOCKETIO_ADMIN_USERNAME,
-  SOCKETIO_ADMIN_PASSWORD,
-  TWITCH_USERNAME,
-  TWITCH_OAUTH,
-  COMMAND_PREFIX,
-  FM_OWNER_ID,
-} = process.env;
+const { NODE_ENV, PORT, COMMAND_PREFIX } = process.env;
 
 const app = express();
-const httpServer = createServer(app);
+export const httpServer = createServer(app);
 
 app.use(
   cors({
@@ -53,47 +32,22 @@ app.use(
 );
 app.use(morganMiddleware);
 app.use(cookieParser());
-
 app.use(health);
 app.use(auth);
 
-const options: Partial<ServerOptions> = {
-  cors: {
-    origin: ["http://localhost:5713"],
-  },
-};
-
-export const client = new tmi.Client({
-  options: {
-    debug: NODE_ENV === "production" ? false : true,
-    skipMembership: true,
-  },
-  connection: {
-    reconnect: NODE_ENV === "production" ? true : false,
-    secure: NODE_ENV === "production" ? true : false,
-  },
-  identity: {
-    username: TWITCH_USERNAME,
-    password: TWITCH_OAUTH,
-  },
-  channels: [],
-});
-
-export const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, options);
-
 client.on("part", (channel, username, self) => {
   if (!self) return;
-  log.debug(`Bot left channel: ${channel}`);
+  logger.debug(`Bot left channel: ${channel}`);
 });
 
 client.on("disconnected", (reason) => {
   // Do your stuff.
-  log.debug("Got disconedted from the server", { reason });
+  logger.debug("Got disconedted from the server", { reason });
 });
 
 client.on("reconnect", async () => {
   // Do your stuff.
-  log.debug("Trying to reconnect to server");
+  logger.debug("Trying to reconnect to server");
   await connectToChannels();
 });
 
@@ -105,433 +59,26 @@ client.on("reconnect", async () => {
 
 client.on("serverchange", (channel) => {
   // Do your stuff.
-  log.debug("Changed server", { channel });
+  logger.debug("Changed server", { channel });
 });
+
+const queue = new Queue(NODE_ENV === "production" ? 30 : 3);
 
 client.on("message", async (channel, tags, message, self) => {
   // Ignore echoed messages and not valid commands
-  if (self || !message.startsWith(`!${COMMAND_PREFIX}`)) return;
+  if (self) return;
 
-  log.info(`${tags["display-name"]} send a command on ${channel}`);
+  const [prefix, command, ...args] = parseMessage(message);
+
+  if (prefix.toLowerCase() !== `!${COMMAND_PREFIX}`) return;
 
   const room = channel.slice(1);
-  const args = [...message.split(" ")];
-  let command = args[1];
-  const isBroadcaster = tags.badges?.broadcaster === "1";
-  const isMod = tags.mod;
-  const isOwner = tags["user-id"] === FM_OWNER_ID;
 
-  const responder = new Responder(client, tags, room);
+  const responder = new Responder(client, tags, room, queue);
 
-  log.info("Command sent", { username: tags["display-name"], channel, command: command, args });
+  logger.info("Command sent", { username: tags["display-name"], channel, command, args });
 
-  // Commands for owner only
-  if (isOwner) {
-    if (command === "ping") {
-      responder.respond("Pong imGlitch 👍");
-      return;
-    }
-    if (command === "channels") {
-      const channels = client.getChannels().map((channel) => channel.slice(1));
-      responder.respond(`Connected channels: ${channels.join(", ")}`);
-      return;
-    }
-    if (command === "count") {
-      const count = client.getChannels().length;
-      responder.respond(`Connected channels: ${count}`);
-      return;
-    }
-    if (command === "random") {
-      command = songs[Math.floor(Math.random() * songs.length)];
-    }
-    if (command === "ws") {
-      // return count of connected websockets
-      const count = await io.fetchSockets();
-      responder.respond(`Connected ws: ${count.length}`);
-      return;
-    }
-
-    if (command === "set") {
-      if (args[2] === "minviews") {
-        SONG_MIN_VIEWS = Number(args[3]);
-        responder.respond(`Minimum views set to ${SONG_MIN_VIEWS}`);
-        return;
-      }
-      if (args[2] === "minlength") {
-        SONG_MIN_LENGTH = Number(args[3]);
-        responder.respond(`Minimum length set to ${SONG_MIN_LENGTH}`);
-        return;
-      }
-      if (args[2] === "maxlength") {
-        SONG_MAX_LENGTH = Number(args[3]);
-        responder.respond(`Maximum length set to ${SONG_MAX_LENGTH}`);
-        return;
-      }
-    }
-    if (command === "toggle") {
-      if (args[2] === "topic") {
-        SKIP_TOPIC = !SKIP_TOPIC;
-        responder.respond(`Skip topic: ${SKIP_TOPIC}`);
-        return;
-      }
-      if (args[2] === "song") {
-        SONG_COMMAND = !SONG_COMMAND;
-        responder.respond(`Song command: ${SONG_COMMAND}`);
-        return;
-      }
-    }
-    if (command === "uptime") {
-      var ut_sec = process.uptime();
-      var ut_min = ut_sec / 60;
-      var ut_hour = ut_min / 60;
-
-      ut_sec = Math.floor(ut_sec);
-      ut_min = Math.floor(ut_min);
-      ut_hour = Math.floor(ut_hour);
-
-      ut_hour = ut_hour % 60;
-      ut_min = ut_min % 60;
-      ut_sec = ut_sec % 60;
-
-      responder.respond(`Uptime: ${ut_hour}h ${ut_min}m ${ut_sec}s`);
-      return;
-    }
-  }
-
-  // Commands for moderators
-  if (isBroadcaster || isMod || isOwner) {
-    if (command === "pause") {
-      redisClient
-        .multi()
-        .ttl(`${room}:current`)
-        .persist(`${room}:current`)
-        .exec((err, replies) => {
-          const [ttlError, ttl] = replies[0] as any;
-          const [currentError, current] = replies[1] as any;
-
-          if (ttlError || currentError) {
-            responder.respond("Error while pausing");
-            return;
-          }
-
-          if (ttl === -2) {
-            responder.respond("Nothing to pause");
-            return;
-          }
-
-          if (ttl === -1) {
-            responder.respond("Song already paused");
-            return;
-          }
-
-          log.info(`${room}:current`, { ttl, current });
-
-          redisClient
-            .set(`${room}:timeRemaining`, ttl)
-            .then(() => {
-              io.in(room).emit("pause");
-              responder.respond("Song paused");
-            })
-            .catch((err) => log.error(err));
-        });
-      return;
-    } else if (command === "play") {
-      redisClient
-        .multi()
-        .get(`${room}:current`)
-        .get(`${room}:timeRemaining`)
-        .exec((err, replies) => {
-          const [currentError, current] = replies[0] as any;
-          const [timeRemainingError, timeRemaining] = replies[1] as any;
-          // const [timeRemainingDelError, timeRemainingDel] = replies[2];
-
-          if (currentError || timeRemainingError) {
-            responder.respond("Error while playing");
-            return;
-          }
-
-          if (current === null) {
-            responder.respond("Nothing to play");
-            return;
-          }
-
-          log.info("Time remaining", { timeRemaining });
-
-          // if (timeRemainingDel === 1) {
-          redisClient
-            .expire(`${room}:current`, timeRemaining)
-            .then(() => {
-              io.in(room).emit("play");
-              responder.respond("Song playing");
-            })
-            .catch((err) => log.error(err));
-          // }
-        });
-      return;
-    } else if (command === "skip") {
-      await skipSong(room);
-      return;
-    } else if (command === "clear") {
-      redisClient
-        .multi()
-        .del(`${room}:current`)
-        .del(`${room}:playlist`)
-        .exec(() => {
-          responder.respond("Playlist cleared");
-          io.in(room).emit("clear");
-        })
-        .catch((err) => log.error(err));
-      return;
-    } else if (command === "help") {
-      responder.respondWithMention(`Available commands: <link>, help, play, pause, skip, clear, song, disconnect`);
-      return;
-    } else if (command === "disconnect") {
-      responder.respondWithMention(`disconnecting... :(`);
-      client.part(room);
-      return;
-    } else if (command === "ban") {
-      const user = args[1];
-      if (!user) {
-        responder.respondWithMention(`please specify a user to ban`);
-        return;
-      }
-      responder.respondWithMention(`${user} banned`);
-      return;
-    } else if (command === "unban") {
-      const user = args[1];
-      if (!user) {
-        responder.respondWithMention(`please specify a user to unban`);
-        return;
-      }
-      responder.respondWithMention(`${user} unbanned`);
-      return;
-    }
-  }
-
-  // Commands for everyone
-  if (command === "help") {
-    responder.respondWithMention(`available commands: !fm <link>, !fm search <term>, !fm song, !fm wrong`);
-    return;
-  }
-
-  if (command === "song") {
-    redisClient
-      .get(`${room}:current`)
-      .then((current) => {
-        if (current === null) {
-          client.say(room, "Nothing playing");
-          return;
-        }
-
-        const currentSong: CurrentSong = JSON.parse(current);
-
-        responder.respondWithMention(`currently playing: "${currentSong.yt_id}"`);
-      })
-      .catch((err) => log.error(err));
-    return;
-  }
-
-  if (command === "wrong") {
-    const current = await redisClient.lrange(`${room}:playlist`, 0, -1);
-    const list = current.map((item) => JSON.parse(item));
-
-    if (list.length < 1) {
-      responder.respondWithMention(`playlist empty`);
-      return;
-    }
-
-    let found;
-
-    for (let i = list.length - 1; i > -1; i--) {
-      if (list[i].username === tags["display-name"]) {
-        found = list[i];
-        break;
-      }
-    }
-
-    if (!found) {
-      responder.respondWithMention(`could not find your last added song`);
-      return;
-    }
-
-    redisClient.lrem(`${room}:playlist`, -1, JSON.stringify(found));
-
-    responder.respondWithMention(`removed your last song`);
-    return;
-  }
-
-  if (command === "search") {
-    const [_one, _two, ...search] = args;
-
-    if (!search.length) {
-      responder.respondWithMention(`no search provided`);
-      return;
-    }
-
-    try {
-      const response = await youtubeApi.search.list({
-        part: ["snippet"],
-        maxResults: 5,
-        q: search.join(" "),
-        key: process.env.GOOGLE_API_KEY,
-      });
-
-      command = `https://youtu.be/${response.data.items[0].id.videoId}`;
-    } catch {
-      responder.respondWithMention(`Unable to find video`);
-      return;
-    }
-  }
-
-  // if (command === "spotify") {
-  //   const [_one, _two, ...spotifyUrl] = args;
-
-  //   responder.respondWithMention(`test`);
-
-  //   console.log(spotifyUrl);
-  //   return;
-  // }
-
-  // Check if yt url is not valid
-  const isNotValid = !ytdl.validateURL(command);
-
-  if (isNotValid) {
-    client.say(channel, `@${tags["display-name"]}, command not valid`);
-    return;
-  }
-
-  redisClient
-    .lrange(`${room}:playlist`, 0, -1)
-    .then(async (current) => {
-      const list = current.map((item) => JSON.parse(item));
-
-      const totalDuration = list.reduce((acc, item) => acc + item.duration, 0);
-
-      const totalSongsByUser = list.filter((item) => item.username === tags["display-name"]).length;
-
-      // Only add to queuq if the total playlist duration is less than the max duration
-      if (totalDuration < ONE_HOUR) {
-        if (totalSongsByUser >= 2) {
-          client.say(channel, `@${tags["display-name"]}, you have reached the maximum amount of songs in queue`);
-          return;
-        }
-        log.info("Number of songs for user: " + totalSongsByUser);
-        log.info(`${tags["display-name"]} added ${command} to the queue`);
-
-        const url = command;
-        const username = tags["display-name"];
-
-        const id = ytdl.getVideoID(url);
-
-        try {
-          const response = await youtubeApi.videos.list({
-            part: ["contentDetails", "status", "snippet", "statistics"],
-            id: [id],
-            key: process.env.GOOGLE_API_KEY,
-          });
-
-          let item = response.data.items![0];
-
-          let isEmbeddable = item.status!.embeddable;
-          let isAgeRestricted = item.contentDetails!.contentRating!.ytRating === "ytAgeRestricted";
-
-          let title = item.snippet!.title!;
-          let channelName = item.snippet!.channelTitle!;
-          let views = Number(item.statistics!.viewCount);
-          let duration = toSeconds(parse(item.contentDetails!.duration!));
-
-          if (!isEmbeddable) {
-            responder.respondWithMention("video has embedds disabled");
-            return;
-          }
-
-          if (isAgeRestricted) {
-            responder.respondWithMention("video is age restricted");
-            return;
-          }
-
-          if (!(isBroadcaster || isMod || isOwner)) {
-            if (views < SONG_MIN_VIEWS) {
-              log.info("Not enough views");
-              responder.respondWithMention("song doesn't have enough views");
-              return;
-            }
-            if (duration < SONG_MIN_LENGTH) {
-              log.info("Not long enough");
-              responder.respondWithMention("song too short");
-              return;
-            }
-            if (duration > SONG_MAX_LENGTH) {
-              log.info("Too long");
-              responder.respondWithMention("song too long");
-              return;
-            }
-          }
-
-          // // let audioFormats = ytdl.filterFormats(info.formats, "videoandaudio");
-          // // const format = ytdl.chooseFormat(audioFormats, {
-          // //   quality: "highest",
-          // // });
-
-          // let song: Song = {
-          //   yt_id: id,
-          //   title: info.videoDetails.title,
-          //   artist: info.videoDetails.author.name,
-          //   url: format?.url ?? "xd",
-          //   imgUrl: info.videoDetails.author.thumbnails[info.videoDetails.author.thumbnails.length - 1].url,
-          //   duration: Number(info.videoDetails.lengthSeconds),
-          // };
-
-          // Cache the song
-          // redisClient.setex(id, SONG_EXPIRATION, JSON.stringify(song));
-
-          let song: Song = {
-            yt_id: id,
-            title,
-            artist: channelName,
-            url: "https://youtube.com/" + id,
-            imgUrl: null,
-            // "https://static-cdn.jtvnw.net/jtv_user_pictures/c8f064a7-364f-460c-b668-75beb734e3aa-profile_image-70x70.png",
-            duration,
-            username,
-          };
-
-          // Add song to playlist with redis multi
-          redisClient
-            .multi()
-            .get(`${room}:current`)
-            .lrange(`${room}:playlist`, 0, -1)
-            .exec((err, replies) => {
-              const current = replies[0][1] as any;
-              const playlist = replies[1][1] as any;
-
-              if (!current && playlist.length === 0) {
-                redisClient.setex(`${room}:current`, song.duration, JSON.stringify(song));
-
-                const temp: CurrentSong = {
-                  ...song,
-                  durationRemaining: song.duration,
-                  isPlaying: true,
-                };
-
-                client.say(room, `@${username}, added https://www.youtube.com/watch?v=${id}`);
-                //@ts-ignore
-                io.in(room).emit("song", { current: temp, list });
-              } else {
-                redisClient.rpush(`${room}:playlist`, JSON.stringify(song));
-                client.say(room, `@${username}, added https://www.youtube.com/watch?v=${id}`);
-                io.in(room).emit("playlistAdd", song);
-              }
-            });
-        } catch (error) {
-          log.error(error);
-          client.say(room, `@${username}, could not add song`);
-        }
-      } else {
-        client.say(channel, `@${tags["display-name"]}, the playlist is full`);
-      }
-    })
-    .catch((err) => log.error(err));
+  router.route({ responder, room, tags }, [prefix.toLowerCase(), command, ...args], 0);
 });
 
 sub.on("pmessage", (pattern: string, channel: string, message: string) => {
@@ -562,7 +109,7 @@ sub.on("pmessage", (pattern: string, channel: string, message: string) => {
           .then((current) => {
             io.in(room).emit("song", { current: songWithTTL, list });
           })
-          .catch((err) => log.error(err));
+          .catch((err) => logger.error(err));
       });
   }
 });
@@ -572,23 +119,23 @@ async function connectToChannels() {
     const users = await User.find({ where: { channel: { isEnabled: true } } });
 
     if (!users) {
-      log.info("No users found");
+      logger.info("No users found");
       return;
     }
 
     for (const user of users) {
       try {
         await client.join(user.username);
-        log.info("Joined channel", { channel: user.username });
+        logger.info("Joined channel", { channel: user.username });
         await sleep(2000);
       } catch (e) {
-        log.info(e);
+        logger.info(e);
       }
     }
-    log.debug("Connected to channels from database");
+    logger.debug("Connected to channels from database");
   } catch (e) {
-    log.info("Error while connecting to channels");
-    log.error(e);
+    logger.info("Error while connecting to channels");
+    logger.error(e);
   }
 }
 
@@ -605,18 +152,18 @@ async function main() {
     await client.connect();
     await connectToChannels();
   } catch (e) {
-    log.info("Error in client conection");
-    log.error(e);
+    logger.info("Error in client conection");
+    logger.error(e);
   }
 
   if (process.env.NODE_ENV === "development") {
-    let user = await User.findOne({ where: { twitch_id: "36768120" } });
+    let user = await User.findOne({ where: { twitch_id: "158734200" } });
 
     if (!user) {
       let newUser = User.create({
-        twitch_id: "36768120",
-        username: "loczuk",
-        display_name: "Loczuk",
+        twitch_id: "158734200",
+        username: "loczuk2001",
+        display_name: "loczuk2001",
         email: "test@test.com",
       });
 
@@ -625,10 +172,10 @@ async function main() {
   }
 
   io.on("connection", (socket) => {
-    log.info("New connection", { id: socket.id, ip: socket.handshake.address });
+    logger.info("New connection", { id: socket.id, ip: socket.handshake.address });
 
     socket.on("error", (err) => {
-      log.info("socket error", err);
+      logger.info("socket error", err);
     });
 
     socket.on("joinRoom", async (data) => {
@@ -641,7 +188,7 @@ async function main() {
       const user = await User.findOne({ where: { username: data.room } });
 
       if (!user) {
-        log.info("42fm not enabled on channel", { channel: data.room });
+        logger.info("42fm not enabled on channel", { channel: data.room });
         socket.emit("no42fm");
         socket.disconnect();
         return;
@@ -663,7 +210,7 @@ async function main() {
       //   return;
       // }
 
-      log.info("Socket joined room", { socket: socket.id, room: data.room });
+      logger.info("Socket joined room", { socket: socket.id, room: data.room });
       await socket.join(data.room);
 
       const sockets = await io.in(data.room).fetchSockets();
@@ -694,7 +241,7 @@ async function main() {
             isPlaying,
           };
 
-          log.info(`${JSON.stringify(currentWithTTL)}`);
+          logger.info(`${JSON.stringify(currentWithTTL)}`);
 
           if (current && playlist) {
             const list = playlist.map((item: string) => JSON.parse(item));
@@ -704,38 +251,46 @@ async function main() {
     });
 
     socket.on("sync", ({ room }) => {
-      log.info("Sync event", { room });
+      logger.info("Sync event", { room });
       redisClient
         .ttl(`${room}:current`)
         .then((ttl) => {
           if (ttl > 0) {
-            log.debug(ttl);
+            logger.debug(ttl);
             socket.emit("songSync", ttl);
           }
         })
-        .catch((err) => log.error(err));
+        .catch((err) => logger.error(err));
     });
 
     socket.on("couldNotLoad", async (room) => {
       const errors = await redisClient.incr(`${room}:errors`);
       await redisClient.expire(`${room}:errors`, 10);
-      log.info("Errors", { room, errors });
+      logger.info("Errors", { room, errors });
 
       const sockets = await io.in(room).fetchSockets();
 
       const half = sockets.length / 2;
 
-      log.info("Number of errors", { room, errors, half });
+      logger.info("Number of errors", { room, errors, half });
       if (errors > half) {
         client.say(room, "Skipping because could not load song");
         await redisClient.del(`${room}:errors`);
         await skipSong(room);
       }
     });
+
+    socket.on("disconnecting", async () => {
+      for (const room of Array.from(socket.rooms).slice(1)) {
+        const sockets = await io.in(room).fetchSockets();
+        io.in(room).emit("userCount", sockets.length - 1);
+        console.log(room, sockets.length);
+      }
+    });
   });
 }
 
-function skipSong(room: string) {
+export function skipSong(room: string) {
   return redisClient
     .multi()
     .get(`${room}:current`)
@@ -750,7 +305,7 @@ function skipSong(room: string) {
         return;
       }
 
-      log.debug("Skip", { current, nextSong });
+      logger.debug("Skip", { current, nextSong });
 
       if (current === null) {
         client.say(room, "Nothing to skip");
@@ -765,7 +320,7 @@ function skipSong(room: string) {
             io.in(room).emit("skip", { type: "noplaylist" });
             // io.in(room).emit("skip", current);
           })
-          .catch((err) => log.error(err));
+          .catch((err) => logger.error(err));
         return;
       } else {
         const parsedSong = JSON.parse(nextSong);
@@ -783,32 +338,21 @@ function skipSong(room: string) {
               current: currentWithTTL,
             });
           })
-          .catch((err) => log.error(err));
+          .catch((err) => logger.error(err));
       }
     });
 }
 
-// connection.initialize().then(() => {
-//   console.clear();
-//   log.info("Initialized connection to database");
-//   connection.runMigrations().then(() => {
-//     log.info("Ran migrations");
-//     httpServer.listen(PORT, () => {
-//       log.info(`🚀 Server started on port ${PORT}`);
-//     });
-//   });
-// });
-
 (async function () {
   await connection.initialize();
-  log.info("Initialized connection to database");
+  logger.info("Initialized connection to database");
 
   await connection.runMigrations();
-  log.info("Ran migrations");
+  logger.info("Ran migrations");
 
   main();
 
   httpServer.listen(PORT, () => {
-    log.info(`🚀 Server started on port ${PORT}`);
+    logger.info(`🚀 Server started on port ${PORT}`);
   });
 })();
