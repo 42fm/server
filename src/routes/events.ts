@@ -1,7 +1,7 @@
-import { client } from "constants/tmi.js";
+import { io } from "@constants/io.js";
+import { client } from "@constants/tmi";
 import { raw, Router } from "express";
 import crypto from "node:crypto";
-import { io } from "../index.js";
 import { logger } from "../utils/loggers.js";
 
 const router = Router();
