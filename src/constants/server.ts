@@ -1,5 +1,10 @@
-import { httpServer } from "index";
+import express from "express";
+import { createServer } from "http";
 import { Server, ServerOptions } from "socket.io";
+
+export const app = express();
+
+export const httpServer = createServer(app);
 
 const options: Partial<ServerOptions> = {
   cors: {

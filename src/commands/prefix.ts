@@ -1,4 +1,4 @@
-import { io } from "@constants/io";
+import { io } from "@constants/server";
 import { addSong } from "../commands";
 import { client } from "../constants/tmi";
 import { redisClient } from "../db/redis";

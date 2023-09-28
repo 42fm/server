@@ -1,5 +1,5 @@
 import { router } from "@commands/index";
-import { io } from "@constants/io";
+import { app, httpServer, io } from "@constants/server";
 import { client } from "@constants/tmi";
 import { User } from "@db/entity/User";
 import connection from "@db/index";
@@ -14,14 +14,9 @@ import { sleep } from "@utils/sleep";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import "dotenv/config";
-import express from "express";
-import { createServer } from "http";
 import "reflect-metadata";
 
 const { NODE_ENV, PORT, COMMAND_PREFIX } = process.env;
-
-const app = express();
-export const httpServer = createServer(app);
 
 app.use(
   cors({

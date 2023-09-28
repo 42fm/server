@@ -1,5 +1,5 @@
 import { ONE_HOUR, SONG_MAX_LENGTH, SONG_MIN_LENGTH, SONG_MIN_VIEWS } from "@constants/constants";
-import { io } from "@constants/io";
+import { io } from "@constants/server";
 import { client } from "@constants/tmi";
 import { youtubeApi } from "@constants/youtube";
 import { redisClient } from "@db/redis";
