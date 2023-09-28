@@ -25,7 +25,7 @@ export class Router<K extends string = any> {
   register(name: K, ...functions: RouteMiddleware[]) {
     this.routes.set(name, {
       middlewares: functions.length > 0 ? functions.slice(0, functions.length - 1) : [],
-      cb: functions.at(-1),
+      cb: functions[functions.length - 1],
     });
   }
 
