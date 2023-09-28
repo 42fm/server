@@ -7,7 +7,6 @@ import { redisClient, sub } from "@db/redis";
 import { Queue } from "@lib/queue";
 import { Responder } from "@lib/responder";
 import morganMiddleware from "@middleware/morganMiddleware";
-import auth from "@routes/auth";
 import health from "@routes/health";
 import { logger } from "@utils/loggers";
 import { parseMessage } from "@utils/parser";
@@ -33,7 +32,6 @@ app.use(
 app.use(morganMiddleware);
 app.use(cookieParser());
 app.use(health);
-app.use(auth);
 
 client.on("part", (channel, username, self) => {
   if (!self) return;
