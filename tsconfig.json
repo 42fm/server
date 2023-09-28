@@ -10,7 +10,16 @@
     "sourceMap": true,
     "outDir": "dist",
     "rootDir": "src",
-    "baseUrl": "./",
+    "baseUrl": "src",
+    "paths": {
+      "@commands/*": ["./commands/*"],
+      "@constants/*": ["./constants/*"],
+      "@db/*": ["./db/*"],
+      "@lib/*": ["./lib/*"],
+      "@middleware/*": ["./middleware/*"],
+      "@routes/*": ["./routes/*"],
+      "@utils/*": ["./utils/*"]
+    },
     "typeRoots": ["./types", "node_modules/@types"]
   },
   "include": ["src/", "types/"]
