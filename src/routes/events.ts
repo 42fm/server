@@ -1,8 +1,8 @@
-import { io } from "@constants/io.js";
+import { io } from "@constants/server";
 import { client } from "@constants/tmi";
 import { raw, Router } from "express";
 import crypto from "node:crypto";
-import { logger } from "../utils/loggers.js";
+import { logger } from "../utils/loggers";
 
 const router = Router();
 
