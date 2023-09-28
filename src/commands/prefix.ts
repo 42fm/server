@@ -1,8 +1,7 @@
-import { io } from "@constants/server";
 import { addSong } from "../commands";
 import { client } from "../constants/tmi";
 import { redisClient } from "../db/redis";
-import { skipSong } from "../index";
+import { io, skipSong } from "../index";
 import { Router } from "../lib/router";
 import { isOwner, isOwnerBroadcasterMod } from "../middleware/tags";
 import { songs } from "../songs";

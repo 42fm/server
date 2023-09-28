@@ -1,5 +1,4 @@
 import { router } from "@commands/index";
-import { app, httpServer, io } from "@constants/server";
 import { client } from "@constants/tmi";
 import { User } from "@db/entity/User";
 import connection from "@db/index";
@@ -14,9 +13,24 @@ import { sleep } from "@utils/sleep";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import "dotenv/config";
+import express from "express";
+import { createServer } from "http";
 import "reflect-metadata";
+import { Server, ServerOptions } from "socket.io";
 
 const { NODE_ENV, PORT, COMMAND_PREFIX } = process.env;
+
+const app = express();
+
+const httpServer = createServer(app);
+
+const options: Partial<ServerOptions> = {
+  cors: {
+    origin: ["http://localhost:5713"],
+  },
+};
+
+export const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, options);
 
 app.use(
   cors({
