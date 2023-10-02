@@ -195,4 +195,8 @@ prefixRouter.register("set", isOwner, (ctx) => {
   ctx.responder.respondWithMention("available commands: " + Array.from(setRouter.routes.keys()).join(", "));
 });
 
+prefixRouter.register("serach", (ctx) => {
+  ctx.responder.respondWithMention("use !fm <link / search term> to add a song");
+});
+
 prefixRouter.registerNextRouter("set", setRouter);
