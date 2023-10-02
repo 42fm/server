@@ -2,6 +2,7 @@ import { ONE_HOUR, SONG_MAX_LENGTH, SONG_MIN_LENGTH, SONG_MIN_VIEWS } from "@con
 import { client } from "@constants/tmi";
 import { youtubeApi } from "@constants/youtube";
 import { redisClient } from "@db/redis";
+import RateLimiter from "@lib/limiter";
 import { Responder } from "@lib/responder";
 import { Router } from "@lib/router";
 import { logger } from "@utils/loggers";
@@ -14,9 +15,11 @@ import { prefixRouter } from "./prefix";
 
 export const router = new Router();
 
-const { COMMAND_PREFIX } = process.env;
+const { COMMAND_PREFIX, NODE_ENV } = process.env;
 
-router.register(`!${COMMAND_PREFIX}`, (ctx, args) => {
+export const limiter = new RateLimiter(NODE_ENV === "production" ? 10 : 3);
+
+router.register(`!${COMMAND_PREFIX}`, async (ctx, args) => {
   addSong(ctx, args);
 });
 
@@ -52,10 +55,17 @@ export async function addSong(
       return;
     }
 
+    const exceedsLimit = await limiter.consume(tags["user-id"]);
+
+    if (exceedsLimit) {
+      responder.respondWithMention("rate limit exceeded");
+      return;
+    }
+
     try {
       const response = await youtubeApi.search.list({
         part: ["snippet"],
-        maxResults: 5,
+        maxResults: 1,
         q: args.join(" "),
         key: process.env.GOOGLE_API_KEY,
       });
