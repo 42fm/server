@@ -58,7 +58,7 @@ export async function addSong(
     const exceedsLimit = await limiter.consume(tags["user-id"]);
 
     if (exceedsLimit) {
-      responder.respondWithMention("rate limit exceeded");
+      responder.respondWithMention("search ratelimit exceeded, use a link to add a song");
       return;
     }
 
