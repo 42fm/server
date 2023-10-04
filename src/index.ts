@@ -134,7 +134,7 @@ async function connectToChannels() {
       try {
         await client.join(user.username);
         logger.info("Joined channel", { channel: user.username });
-        await sleep(2000);
+        await sleep(600);
       } catch (e) {
         logger.info(e);
       }
