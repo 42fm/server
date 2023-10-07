@@ -134,7 +134,7 @@ export async function addSong(
 
           const { isBroadcaster, isMod, isOwner } = parseTags(tags);
 
-          if (!isOwner) {
+          if (!(isBroadcaster || isMod || isOwner)) {
             if (views < SONG_MIN_VIEWS) {
               logger.info("Not enough views");
               responder.respondWithMention("song doesn't have enough views");
