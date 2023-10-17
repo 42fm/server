@@ -3,7 +3,7 @@ import { client } from "../constants/tmi";
 import { redisClient } from "../db/redis";
 import { io, skipSong } from "../index";
 import { Router } from "../lib/router";
-import { isOwner, isOwnerBroadcasterMod } from "../middleware/tags";
+import { isOwner, isOwnerBroadcasterMod, isOwnerOrOwnerRoom } from "../middleware/tags";
 import { songs } from "../songs";
 import { logger } from "../utils/loggers";
 import { setRouter } from "./test";
@@ -49,7 +49,7 @@ prefixRouter.register("ws", isOwner, async (ctx) => {
   ctx.responder.respond(`Connected ws: ${count.length}`);
 });
 
-prefixRouter.register("ping", isOwner, (ctx) => {
+prefixRouter.register("ping", isOwnerOrOwnerRoom, (ctx) => {
   ctx.responder.respond("Pong imGlitch 👍");
 });
 
