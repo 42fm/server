@@ -196,7 +196,7 @@ prefixRouter.register("set", isOwner, (ctx) => {
 });
 
 prefixRouter.register("search", (ctx) => {
-  ctx.responder.respondWithMention("use !fm <link / search term> to add a song");
+  ctx.responder.respondWithMention("use !fm <link/title> to add a song");
 });
 
 prefixRouter.registerNextRouter("set", setRouter);
