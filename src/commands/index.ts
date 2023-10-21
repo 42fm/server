@@ -158,7 +158,6 @@ export async function addSong(
             artist: channelName,
             url: "https://youtube.com/" + id,
             imgUrl: channelResponse.data.items![0].snippet?.thumbnails?.default?.url,
-            // "https://static-cdn.jtvnw.net/jtv_user_pictures/c8f064a7-364f-460c-b668-75beb734e3aa-profile_image-70x70.png",
             duration,
             username,
           };
