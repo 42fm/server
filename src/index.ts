@@ -17,6 +17,7 @@ import express from "express";
 import { createServer } from "http";
 import "reflect-metadata";
 import { Server, ServerOptions } from "socket.io";
+import authRouter from "./routes/auth";
 
 const { NODE_ENV, PORT, COMMAND_PREFIX } = process.env;
 
@@ -41,6 +42,8 @@ app.use(
 app.use(morganMiddleware);
 app.use(cookieParser());
 app.use(health);
+
+app.use(authRouter);
 
 client.on("part", (channel, username, self) => {
   if (!self) return;
@@ -363,3 +366,19 @@ export function skipSong(room: string) {
     logger.info(`🚀 Server started on port ${PORT}`);
   });
 })();
+
+process.on("SIGTERM", () => {
+  httpServer.close(() => {
+    logger.info("Http server closed");
+    io.close(async () => {
+      logger.info("IO server closed");
+      await connection.destroy();
+      logger.info("Database connection closed");
+      await redisClient.quit();
+      logger.info("Redis connection closed");
+      await sub.quit();
+      logger.info("Redis Sub connection closed");
+      process.exit(0);
+    });
+  });
+});
