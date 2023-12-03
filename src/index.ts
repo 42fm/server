@@ -195,10 +195,12 @@ async function main() {
       //   return;
       // }
 
-      const user = await User.findOne({ where: { username: data.room } });
+      const room = data.room.toLowerCase();
+
+      const user = await User.findOne({ where: { username: room } });
 
       if (!user) {
-        logger.info("42fm not enabled on channel", { channel: data.room });
+        logger.info("42fm not enabled on channel", { channel: room });
         socket.emit("no42fm");
         socket.disconnect();
         return;
@@ -220,18 +222,18 @@ async function main() {
       //   return;
       // }
 
-      logger.info("Socket joined room", { socket: socket.id, room: data.room });
-      await socket.join(data.room);
+      logger.info("Socket joined room", { socket: socket.id, room: room });
+      await socket.join(room);
 
-      const sockets = await io.in(data.room).fetchSockets();
+      const sockets = await io.in(room).fetchSockets();
 
-      io.in(data.room).emit("userCount", sockets.length);
+      io.in(room).emit("userCount", sockets.length);
 
       redisClient
         .multi()
-        .get(`${data.room}:current`)
-        .lrange(`${data.room}:playlist`, 0, -1)
-        .ttl(`${data.room}:current`)
+        .get(`${room}:current`)
+        .lrange(`${room}:playlist`, 0, -1)
+        .ttl(`${room}:current`)
         .exec((err, replies) => {
           const [currentError, current] = replies[0] as any;
           const [playlistError, playlist] = replies[1] as any;
@@ -260,7 +262,9 @@ async function main() {
         });
     });
 
-    socket.on("sync", ({ room }) => {
+    socket.on("sync", (data) => {
+      const room = data.room.toLowerCase();
+
       logger.info("Sync event", { room });
       redisClient
         .ttl(`${room}:current`)
