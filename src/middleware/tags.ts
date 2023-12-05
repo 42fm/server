@@ -4,7 +4,7 @@ import { parseTags } from "../utils/tagsParser";
 export function isOwnerOrOwnerRoom(ctx: Context, args: string[], next: () => void) {
   const { isOwner } = parseTags(ctx.tags);
 
-  if (isOwner || ctx.room === "loczuk") next();
+  if (isOwner || ctx.room === process.env.FM_OWNER_USERNAME) next();
 }
 
 export function isOwner(ctx: Context, args: string[], next: () => void) {
