@@ -62,13 +62,13 @@ prefixRouter.register("song", async ({ responder, room }) => {
     const res = await redisClient.get(`${room}:current`);
 
     if (!res) {
-      responder.respondWithMention("nothing is currently playing");
+      responder.respondWithMention("Nothing is playing");
       return;
     }
 
     const currentSong: CurrentSong = JSON.parse(res);
 
-    responder.respondWithMention(`current song: "https://youtu.be/${currentSong.yt_id}"`);
+    responder.respondWithMention(`Current song: https://youtu.be/${currentSong.yt_id}`);
   } catch (e) {
     console.log(e);
   }
