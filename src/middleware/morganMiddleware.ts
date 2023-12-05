@@ -3,7 +3,7 @@ import { logger } from "../utils/loggers";
 
 const stream: StreamOptions = {
   // Use the http severity
-  write: (message) => logger.http(message),
+  write: (message) => logger.http(message.trim()),
 };
 
 // Build the morgan middleware
