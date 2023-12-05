@@ -17,6 +17,7 @@ const connection = new DataSource({
   migrations: ["./migrations/**/*.ts"],
   logging: NODE_ENV === "development",
   synchronize: NODE_ENV === "development",
+  poolSize: 5,
 });
 
 export default connection;
