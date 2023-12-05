@@ -4,7 +4,7 @@ import { DataSource } from "typeorm";
 import { Channel } from "./entity/Channel";
 import { User } from "./entity/User";
 
-const { DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME, NODE_ENV } = process.env;
+const { DB_HOST, DB_USERNAME, DEBUG_POSTGRES, DB_PASSWORD, DB_NAME, NODE_ENV } = process.env;
 
 const connection = new DataSource({
   type: "postgres",
@@ -15,7 +15,7 @@ const connection = new DataSource({
   database: DB_NAME,
   entities: [User, Channel],
   migrations: ["./migrations/**/*.ts"],
-  logging: NODE_ENV === "development",
+  logging: !!DEBUG_POSTGRES,
   synchronize: NODE_ENV === "development",
   poolSize: 5,
 });
