@@ -197,6 +197,3 @@ interface TwitchAppAccessTokenResponse {
   scope: string[];
   token_type: string;
 }
-
-// error: Twitch auth error: {"0":"N","1":"o","10":"e","11":" ","12":"f","13":"r","14":"o","15":"m","16":" ","17":"T","18":"w","19":"i","2":" ","20":"t","21":"c","22":"h","23":".","3":"r","4":"e","5":"s","6":"p","7":"o","8":"n","9":"s"}
-// Noe from Twitch. response
