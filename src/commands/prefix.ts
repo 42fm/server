@@ -6,7 +6,7 @@ import { Router } from "../lib/router";
 import { isOwner, isOwnerBroadcasterMod, isOwnerOrOwnerRoom } from "../middleware/tags";
 import { songs } from "../songs";
 import { logger } from "../utils/loggers";
-import { setRouter } from "./test";
+import { setRouter } from "./set";
 
 export const prefixRouter = new Router();
 
