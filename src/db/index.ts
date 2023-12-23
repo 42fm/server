@@ -15,7 +15,7 @@ const connection = new DataSource({
   database: DB_NAME,
   entities: [User, Channel],
   migrations: ["./migrations/**/*.ts"],
-  logging: !!DEBUG_POSTGRES,
+  logging: DEBUG_POSTGRES === "true",
   synchronize: NODE_ENV === "development",
   poolSize: 5,
 });

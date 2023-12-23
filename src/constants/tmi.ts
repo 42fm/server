@@ -4,7 +4,7 @@ const { NODE_ENV, DEBUG_TMI, TWITCH_USERNAME, TWITCH_OAUTH, COMMAND_PREFIX } = p
 
 export const client = new tmi.Client({
   options: {
-    debug: !!DEBUG_TMI,
+    debug: DEBUG_TMI === "true",
     skipMembership: true,
   },
   connection: {
