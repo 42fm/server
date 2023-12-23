@@ -1,4 +1,5 @@
-import { ONE_HOUR, SONG_MAX_LENGTH, SONG_MIN_LENGTH, SONG_MIN_VIEWS } from "@constants/constants";
+import { config } from "@constants/config";
+import { ONE_HOUR } from "@constants/constants";
 import { client } from "@constants/tmi";
 import { youtubeApi } from "@constants/youtube";
 import { redisClient } from "@db/redis";
@@ -87,7 +88,7 @@ export async function addSong(
       const totalSongsByUser = list.filter((item) => item.username === tags["display-name"]).length;
 
       // Only add to queuq if the total playlist duration is less than the max duration
-      if (totalDuration < ONE_HOUR) {
+      if (totalDuration < ONE_HOUR * 2) {
         if (totalSongsByUser >= 2) {
           responder.respondWithMention("you have reached the maximum amount of songs in queue");
           return;
@@ -135,17 +136,17 @@ export async function addSong(
           const { isBroadcaster, isMod, isOwner } = parseTags(tags);
 
           if (!(isBroadcaster || isMod || isOwner)) {
-            if (views < SONG_MIN_VIEWS) {
+            if (views < config.get("SONG_MIN_VIEWS")) {
               logger.info("Not enough views");
-              responder.respondWithMention("song doesn't have enough views");
+              responder.respondWithMention(`song must have at least ${config.get("SONG_MIN_VIEWS")} views`);
               return;
             }
-            if (duration < SONG_MIN_LENGTH) {
+            if (duration < config.get("SONG_MIN_LENGTH")) {
               logger.info("Not long enough");
               responder.respondWithMention("song too short");
               return;
             }
-            if (duration > SONG_MAX_LENGTH) {
+            if (duration > config.get("SONG_MAX_LENGTH")) {
               logger.info("Too long");
               responder.respondWithMention("song too long");
               return;

@@ -1,4 +1,5 @@
 import { router } from "@commands/index";
+import { config } from "@constants/config";
 import { client } from "@constants/tmi";
 import { User } from "@db/entity/User";
 import connection from "@db/index";
@@ -160,10 +161,20 @@ async function main() {
 
   try {
     await client.connect();
+  } catch (error) {
+    logger.error(error);
+  }
+
+  try {
+    await config.init();
+  } catch (error) {
+    logger.error(error);
+  }
+
+  try {
     await connectToChannels();
-  } catch (e) {
-    logger.info("Error in client conection");
-    logger.error(e);
+  } catch (error) {
+    logger.error(error);
   }
 
   if (process.env.NODE_ENV === "development") {
