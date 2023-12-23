@@ -7,7 +7,7 @@ import { redisClient, sub } from "@db/redis";
 import { Queue } from "@lib/queue";
 import { Responder } from "@lib/responder";
 import morganMiddleware from "@middleware/morganMiddleware";
-import health from "@routes/health";
+import healthRouter from "@routes/health";
 import { logger } from "@utils/loggers";
 import { parseMessage } from "@utils/parser";
 import { sleep } from "@utils/sleep";
@@ -34,6 +34,7 @@ const options: Partial<ServerOptions> = {
 
 export const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, options);
 
+// Middleware
 app.use(
   cors({
     origin: NODE_ENV === "production" ? "https://42fm.app" : "http://localhost:5173",
@@ -42,36 +43,10 @@ app.use(
 );
 app.use(morganMiddleware);
 app.use(cookieParser());
-app.use(health);
 
+// Routes
 app.use(authRouter);
-
-client.on("part", (channel, username, self) => {
-  if (!self) return;
-  logger.debug(`Bot left channel: ${channel}`);
-});
-
-client.on("disconnected", (reason) => {
-  // Do your stuff.
-  logger.debug("Got disconedted from the server", { reason });
-});
-
-client.on("reconnect", async () => {
-  // Do your stuff.
-  logger.debug("Trying to reconnect to server");
-  await connectToChannels();
-});
-
-// client.on("connected", async () => {
-//   // Do your stuff.
-//   log.debug("Connected to server");
-//   await connectToChannels();
-// });
-
-client.on("serverchange", (channel) => {
-  // Do your stuff.
-  logger.debug("Changed server", { channel });
-});
+app.use(healthRouter);
 
 const queue = new Queue(NODE_ENV === "production" ? 30 : 3);
 
@@ -151,14 +126,6 @@ async function connectToChannels() {
 }
 
 async function main() {
-  // try {
-  //   await redisClient.connect();
-  //   await connection.initialize();
-  // } catch (e) {
-  //   log.info("Unable to connect to some db");
-  //   log.error(e);
-  // }
-
   try {
     await client.connect();
   } catch (error) {
