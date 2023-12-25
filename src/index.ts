@@ -1,10 +1,10 @@
 import { router } from "@commands/index";
 import { config } from "@constants/config";
+import { queue } from "@constants/queue";
 import { client } from "@constants/tmi";
 import { User } from "@db/entity/User";
 import connection from "@db/index";
 import { redisClient, sub } from "@db/redis";
-import { Queue } from "@lib/queue";
 import { Responder } from "@lib/responder";
 import morganMiddleware from "@middleware/morganMiddleware";
 import healthRouter from "@routes/health";
@@ -47,8 +47,6 @@ app.use(cookieParser());
 // Routes
 app.use(authRouter);
 app.use(healthRouter);
-
-const queue = new Queue(NODE_ENV === "production" ? 30 : 3);
 
 client.on("message", async (channel, tags, message, self) => {
   // Ignore echoed messages and not valid commands

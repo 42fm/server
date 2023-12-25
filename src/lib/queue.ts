@@ -1,8 +1,8 @@
 class QueueNode {
-  cb: (...args: any) => any;
+  cb: () => void;
   next: QueueNode;
 
-  constructor(cb?: (...args: any) => any, next?: QueueNode) {
+  constructor(cb?: () => void, next?: QueueNode) {
     this.cb = cb;
     this.next = next;
   }
@@ -14,16 +14,16 @@ export class Queue {
   head: QueueNode;
   tail: QueueNode;
 
-  constructor(messagesPerThirtySecconds: number = 3) {
-    this.limit = messagesPerThirtySecconds;
-    this.remaining = messagesPerThirtySecconds;
+  constructor({ limit, intervalMs }: { limit: number; intervalMs: number }) {
+    this.limit = limit;
+    this.remaining = limit;
     this.head = new QueueNode();
     this.tail = this.head;
 
     setInterval(() => {
       this.remaining = this.limit;
       this.run();
-    }, 30_000);
+    }, intervalMs);
   }
 
   run() {
@@ -38,7 +38,7 @@ export class Queue {
     this.head = dummy;
   }
 
-  add(cb: (...args: any) => any) {
+  add(cb: () => void) {
     if (this.remaining > 0) {
       cb();
       this.remaining -= 1;
