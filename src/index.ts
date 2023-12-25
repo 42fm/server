@@ -20,7 +20,7 @@ import "reflect-metadata";
 import { Server, ServerOptions } from "socket.io";
 import authRouter from "./routes/auth";
 
-const { NODE_ENV, PORT, COMMAND_PREFIX } = process.env;
+const { PORT, URL, COMMAND_PREFIX } = process.env;
 
 const app = express();
 
@@ -28,7 +28,7 @@ const httpServer = createServer(app);
 
 const options: Partial<ServerOptions> = {
   cors: {
-    origin: ["http://localhost:5713"],
+    origin: [URL],
   },
 };
 
@@ -37,7 +37,7 @@ export const io = new Server<ClientToServerEvents, ServerToClientEvents, InterSe
 // Middleware
 app.use(
   cors({
-    origin: NODE_ENV === "production" ? "https://42fm.app" : "http://localhost:5173",
+    origin: URL,
     credentials: true,
   })
 );
