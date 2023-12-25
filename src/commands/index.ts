@@ -1,5 +1,6 @@
 import { config } from "@constants/config";
 import { ONE_HOUR } from "@constants/constants";
+import { limiter } from "@constants/limiter";
 import { client } from "@constants/tmi";
 import { youtubeApi } from "@constants/youtube";
 import { redisClient } from "@db/redis";
@@ -15,9 +16,7 @@ import { prefixRouter } from "./prefix";
 
 export const router = new Router();
 
-const { COMMAND_PREFIX, NODE_ENV } = process.env;
-
-export const limiter = new RateLimiter(NODE_ENV === "production" ? 10 : 3);
+const { COMMAND_PREFIX } = process.env;
 
 router.register(`!${COMMAND_PREFIX}`, async (ctx, args) => {
   addSong(ctx, args);

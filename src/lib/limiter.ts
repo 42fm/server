@@ -1,24 +1,24 @@
-import { ONE_DAY_IN_SECONDS } from "@constants/constants";
 import { redisClient } from "@db/redis";
 
 class RateLimiter {
-  maxMessagesPerDay: number;
+  time: number;
+  max: number;
 
-  constructor(maxMessagesPerDay: number) {
-    this.maxMessagesPerDay = maxMessagesPerDay;
+  constructor({ max, time }: { max: number; time: number }) {
+    this.time = time;
+    this.max = max;
   }
 
-  async consume(userID: string) {
+  async consume(key: string) {
     const res = await redisClient
       .multi()
-      .incr("ratelimit:" + userID)
-      .expire("ratelimit:" + userID, ONE_DAY_IN_SECONDS)
+      .incr("ratelimit:" + key)
+      .expire("ratelimit:" + key, this.time)
       .exec();
 
-    const [incError, inc] = res[0] as any;
-    const [expireError, expire] = res[1] as any;
+    const [, inc] = res[0] as [Error, number];
 
-    return inc > this.maxMessagesPerDay;
+    return inc > this.max;
   }
 }
 
