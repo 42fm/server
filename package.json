@@ -9,6 +9,8 @@
     "dev:docker": "ts-node-dev -r dotenv/config -r tsconfig-paths/register --poll --respawn --transpile-only src/index.ts",
     "start": "node ./dist/index.js",
     "build": "tsc -p . && tsc-alias",
+    "lint": "eslint src/**/*.ts ./**/*.ts",
+    "lint:fix": "eslint src/**/*.ts ./**/*.ts --fix",
     "migration:generate": "typeorm-ts-node-esm migration:generate -d src/db/index.ts",
     "migration:create": "typeorm-ts-node-esm migration:create",
     "migration:run": "typeorm-ts-node-esm migration:run -d src/db/index.ts",
@@ -44,5 +46,10 @@
     "typescript": "^5.2.2",
     "winston": "^3.5.1",
     "ytdl-core": "^4.11.4"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0"
   }
 }
