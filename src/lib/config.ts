@@ -23,9 +23,7 @@ export class Config<T> {
 
       for (const key in config) {
         if (Object.prototype.hasOwnProperty.call(config, key)) {
-          // @ts-ignore
           const element = config[key];
-          // @ts-ignore
           this.settings[key] = element;
         }
       }

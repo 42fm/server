@@ -77,8 +77,8 @@ sub.on("pmessage", (pattern: string, channel: string, message: string) => {
       .lpop(`${room}:playlist`)
       .lrange(`${room}:playlist`, 0, -1)
       .exec((err, replies) => {
-        const song: string = replies[0][1] as any;
-        const playlist: string[] = replies[1][1] as any;
+        const song = replies[0][1] as string;
+        const playlist = replies[1][1] as string[];
 
         if (!song) return;
 
@@ -92,7 +92,7 @@ sub.on("pmessage", (pattern: string, channel: string, message: string) => {
 
         redisClient
           .setex(`${room}:current`, parsedSong.duration, song)
-          .then((current) => {
+          .then(() => {
             io.in(room).emit("song", { current: songWithTTL, list });
           })
           .catch((err) => logger.error(err));
@@ -145,10 +145,10 @@ async function main() {
   }
 
   if (process.env.NODE_ENV === "development") {
-    let user = await User.findOne({ where: { twitch_id: "158734200" } });
+    const user = await User.findOne({ where: { twitch_id: "158734200" } });
 
     if (!user) {
-      let newUser = User.create({
+      const newUser = User.create({
         twitch_id: "158734200",
         username: "loczuk2001",
         display_name: "loczuk2001",
@@ -213,9 +213,9 @@ async function main() {
         .lrange(`${room}:playlist`, 0, -1)
         .ttl(`${room}:current`)
         .exec((err, replies) => {
-          const [currentError, current] = replies[0] as any;
-          const [playlistError, playlist] = replies[1] as any;
-          const [ttlError, ttl] = replies[2] as any;
+          const [, current] = replies[0] as [Error, string];
+          const [, playlist] = replies[1] as [Error, string[]];
+          const [, ttl] = replies[2] as [Error, number];
 
           let isPlaying;
 
@@ -289,8 +289,8 @@ export function skipSong(room: string) {
     .lpop(`${room}:playlist`)
     .lrange(`${room}:playlist`, 0, -1)
     .exec((err, replies) => {
-      const [currentError, current] = replies[0] as any;
-      const [nextSongError, nextSong] = replies[1] as any;
+      const [currentError, current] = replies[0] as [Error, string];
+      const [nextSongError, nextSong] = replies[1] as [Error, string];
 
       if (currentError || nextSongError) {
         client.say(room, "Error while skipping");
@@ -310,7 +310,6 @@ export function skipSong(room: string) {
           .del(`${room}:current`)
           .then(() => {
             io.in(room).emit("skip", { type: "noplaylist" });
-            // io.in(room).emit("skip", current);
           })
           .catch((err) => logger.error(err));
         return;

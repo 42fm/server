@@ -15,7 +15,7 @@ interface Route {
   router?: Router;
 }
 
-export class Router<K extends string = any> {
+export class Router<K extends string = string> {
   routes: Map<K, Route>;
 
   constructor() {
@@ -37,7 +37,7 @@ export class Router<K extends string = any> {
   route(ctx: Context, segments: K[], idx: number): void {
     if (!this.routes.has(segments[idx])) return;
 
-    let { middlewares, cb, router } = this.routes.get(segments[idx]);
+    const { middlewares, cb, router } = this.routes.get(segments[idx]);
 
     for (const middleware of middlewares) {
       let calledBack = false;

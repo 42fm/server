@@ -3,7 +3,6 @@ import { ONE_HOUR } from "@constants/constants";
 import { client } from "@constants/tmi";
 import { youtubeApi } from "@constants/youtube";
 import { redisClient } from "@db/redis";
-import RateLimiter from "@lib/limiter";
 import { Responder } from "@lib/responder";
 import { Router } from "@lib/router";
 import { logger } from "@utils/loggers";
@@ -107,7 +106,7 @@ export async function addSong(
             key: process.env.GOOGLE_API_KEY,
           });
 
-          let item = videoResponse.data.items![0];
+          const item = videoResponse.data.items![0];
 
           const channelResponse = await youtubeApi.channels.list({
             part: ["snippet"],
@@ -115,13 +114,13 @@ export async function addSong(
             key: process.env.GOOGLE_API_KEY,
           });
 
-          let isEmbeddable = item.status!.embeddable;
-          let isAgeRestricted = item.contentDetails!.contentRating!.ytRating === "ytAgeRestricted";
+          const isEmbeddable = item.status!.embeddable;
+          const isAgeRestricted = item.contentDetails!.contentRating!.ytRating === "ytAgeRestricted";
 
-          let title = item.snippet!.title!;
-          let channelName = item.snippet!.channelTitle!;
-          let views = Number(item.statistics!.viewCount);
-          let duration = toSeconds(parse(item.contentDetails!.duration!));
+          const title = item.snippet!.title!;
+          const channelName = item.snippet!.channelTitle!;
+          const views = Number(item.statistics!.viewCount);
+          const duration = toSeconds(parse(item.contentDetails!.duration!));
 
           if (!isEmbeddable) {
             responder.respondWithMention("video has embedds disabled");
@@ -153,7 +152,7 @@ export async function addSong(
             }
           }
 
-          let song: Song = {
+          const song: Song = {
             yt_id: id,
             title,
             artist: channelName,
@@ -169,8 +168,8 @@ export async function addSong(
             .get(`${room}:current`)
             .lrange(`${room}:playlist`, 0, -1)
             .exec((err, replies) => {
-              const current = replies[0][1] as any;
-              const playlist = replies[1][1] as any;
+              const current = replies[0][1] as CurrentSong;
+              const playlist = replies[1][1] as Song[];
 
               if (!current && playlist.length === 0) {
                 redisClient.setex(`${room}:current`, song.duration, JSON.stringify(song));
@@ -182,7 +181,6 @@ export async function addSong(
                 };
 
                 client.say(room, `@${username}, added https://www.youtube.com/watch?v=${id}`);
-                //@ts-ignore
                 io.in(room).emit("song", { current: temp, list });
               } else {
                 redisClient.rpush(`${room}:playlist`, JSON.stringify(song));

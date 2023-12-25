@@ -1,6 +1,6 @@
 import tmi from "tmi.js";
 
-const { NODE_ENV, DEBUG_TMI, TWITCH_USERNAME, TWITCH_OAUTH, COMMAND_PREFIX } = process.env;
+const { NODE_ENV, DEBUG_TMI, TWITCH_USERNAME, TWITCH_OAUTH } = process.env;
 
 export const client = new tmi.Client({
   options: {

@@ -6,10 +6,10 @@ import { logger } from "../utils/loggers";
 
 const router = Router();
 
-const { TWITCH_CLIENT_ID, TWITCH_SECRET, CALLBACK_URL, TWITCH_EVENTS_SECRET } = process.env;
+const { TWITCH_CLIENT_ID, TWITCH_SECRET, CALLBACK_URL } = process.env;
 
 router.get("/twitch", async (req: Request, res: Response) => {
-  let code = req.query.code;
+  const code = req.query.code;
 
   if (!code || typeof code !== "string") {
     logger.info("No code was provided", { code });
@@ -18,7 +18,7 @@ router.get("/twitch", async (req: Request, res: Response) => {
 
   // https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=as9g1b0p5gcioxg2u02imxsh2xknzr&redirect_uri=https://api.42fm.app/twitch&scope=user:read:email
   // Get Access Token (OAuth authorization code flow)
-  let request: AxiosResponse<TwitchAppAccessTokenResponse, any> = null;
+  let request: AxiosResponse<TwitchAppAccessTokenResponse> = null;
   try {
     request = await axios.post<TwitchAppAccessTokenResponse>(
       "https://id.twitch.tv/oauth2/token",
@@ -39,7 +39,7 @@ router.get("/twitch", async (req: Request, res: Response) => {
   // }
 
   // Get User Info
-  let response: AxiosResponse<{ data: TwitchAuthResponse[] }, any>;
+  let response: AxiosResponse<{ data: TwitchAuthResponse[] }>;
   try {
     response = await axios.get("https://api.twitch.tv/helix/users", {
       headers: {
@@ -57,7 +57,7 @@ router.get("/twitch", async (req: Request, res: Response) => {
   user = await User.findOne({ where: { twitch_id: data.id } });
 
   if (!user) {
-    let newUser = User.create({
+    const newUser = User.create({
       twitch_id: data.id,
       username: data.login,
       display_name: data.display_name,
@@ -68,7 +68,7 @@ router.get("/twitch", async (req: Request, res: Response) => {
 
   if (user.channel.isEnabled) {
     try {
-      let channel = await client.join(user.username);
+      const channel = await client.join(user.username);
       logger.info("Joined channel " + channel[0]);
     } catch (error) {
       logger.error("Unable to join channel", {

@@ -32,6 +32,6 @@ if (process.env.NODE_ENV === "development") {
 
 export { logger };
 
-function isEmpty(obj: {}) {
+function isEmpty(obj: object) {
   return Object.keys(obj).length === 0;
 }

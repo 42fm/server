@@ -1,12 +1,12 @@
 import { client } from "@constants/tmi";
-import { raw, Router } from "express";
+import { Request, Router, raw } from "express";
 import crypto from "node:crypto";
 import { io } from "../index";
 import { logger } from "../utils/loggers";
 
 const router = Router();
 
-const { TWITCH_CLIENT_ID, TWITCH_EVENTS_SECRET } = process.env;
+const { TWITCH_EVENTS_SECRET } = process.env;
 
 // Notification request headers
 const TWITCH_MESSAGE_ID = "Twitch-Eventsub-Message-Id".toLowerCase();
@@ -23,15 +23,15 @@ const MESSAGE_TYPE_REVOCATION = "revocation";
 const HMAC_PREFIX = "sha256=";
 
 router.post("/eventsub", raw({ type: "application/json" }), async (req, res) => {
-  let secret = getSecret();
-  let message = getHmacMessage(req);
-  let hmac = HMAC_PREFIX + getHmac(secret, message); // Signature to compare
+  const secret = getSecret();
+  const message = getHmacMessage(req);
+  const hmac = HMAC_PREFIX + getHmac(secret, message); // Signature to compare
 
-  if (true === verifyMessage(hmac, req.headers[TWITCH_MESSAGE_SIGNATURE])) {
+  if (true === verifyMessage(hmac, req.headers[TWITCH_MESSAGE_SIGNATURE] as string)) {
     console.log("signatures match");
 
     // Get JSON object from body, so you can process the message.
-    let notification = JSON.parse(req.body);
+    const notification = JSON.parse(req.body);
 
     if (MESSAGE_TYPE_NOTIFICATION === req.headers[MESSAGE_TYPE]) {
       // TODO: Do something with the event's data.
@@ -70,17 +70,17 @@ function getSecret() {
 }
 
 // Build the message used to get the HMAC.
-function getHmacMessage(request: any) {
-  return request.headers[TWITCH_MESSAGE_ID] + request.headers[TWITCH_MESSAGE_TIMESTAMP] + request.body;
+function getHmacMessage(request: Request) {
+  return (request.headers[TWITCH_MESSAGE_ID] as string) + request.headers[TWITCH_MESSAGE_TIMESTAMP] + request.body;
 }
 
 // Get the HMAC.
-function getHmac(secret: any, message: any) {
+function getHmac(secret: string, message: string) {
   return crypto.createHmac("sha256", secret).update(message).digest("hex");
 }
 
 // Verify whether our hash matches the hash that Twitch passed in the header.
-function verifyMessage(hmac: any, verifySignature: any) {
+function verifyMessage(hmac: string, verifySignature: string) {
   return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(verifySignature));
 }
 

@@ -130,8 +130,8 @@ prefixRouter.register("play", isOwnerBroadcasterMod, async (ctx) => {
     .get(`${ctx.room}:current`)
     .get(`${ctx.room}:timeRemaining`)
     .exec((err, replies) => {
-      const [currentError, current] = replies[0] as any;
-      const [timeRemainingError, timeRemaining] = replies[1] as any;
+      const [currentError, current] = replies[0] as [Error, CurrentSong];
+      const [timeRemainingError, timeRemaining] = replies[1] as [Error, number];
 
       if (currentError || timeRemainingError) {
         ctx.responder.respond("Error while playing");
@@ -161,8 +161,8 @@ prefixRouter.register("pause", isOwnerBroadcasterMod, async (ctx) => {
     .ttl(`${ctx.room}:current`)
     .persist(`${ctx.room}:current`)
     .exec((err, replies) => {
-      const [ttlError, ttl] = replies[0] as any;
-      const [currentError, current] = replies[1] as any;
+      const [ttlError, ttl] = replies[0] as [Error, number];
+      const [currentError, current] = replies[1] as [Error, CurrentSong];
 
       if (ttlError || currentError) {
         ctx.responder.respond("Error while pausing");

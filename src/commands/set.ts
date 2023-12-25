@@ -16,7 +16,7 @@ setRouter.register("min-views", async (ctx, args) => {
     return;
   }
 
-  let prev = config.get("SONG_MIN_VIEWS");
+  const prev = config.get("SONG_MIN_VIEWS");
 
   await config.set("SONG_MIN_VIEWS", num);
 
@@ -36,7 +36,7 @@ setRouter.register("min-length", async (ctx, args) => {
     return;
   }
 
-  let prev = config.get("SONG_MIN_LENGTH");
+  const prev = config.get("SONG_MIN_LENGTH");
 
   await config.set("SONG_MIN_LENGTH", num);
 
@@ -56,7 +56,7 @@ setRouter.register("max-length", async (ctx, args) => {
     return;
   }
 
-  let prev = config.get("SONG_MAX_LENGTH");
+  const prev = config.get("SONG_MAX_LENGTH");
 
   await config.set("SONG_MAX_LENGTH", num);
 
