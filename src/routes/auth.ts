@@ -6,7 +6,7 @@ import { logger } from "../utils/loggers";
 
 const router = Router();
 
-const { TWITCH_CLIENT_ID, TWITCH_SECRET, CALLBACK_URL } = process.env;
+const { TWITCH_CLIENT_ID, TWITCH_SECRET, URL } = process.env;
 
 router.get("/twitch", async (req: Request, res: Response) => {
   const code = req.query.code;
@@ -27,7 +27,7 @@ router.get("/twitch", async (req: Request, res: Response) => {
         client_secret: TWITCH_SECRET,
         code,
         grant_type: "authorization_code",
-        redirect_uri: CALLBACK_URL,
+        redirect_uri: URL + "/twitch",
       })
     );
   } catch {
