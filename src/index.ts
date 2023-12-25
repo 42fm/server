@@ -66,7 +66,6 @@ client.on("message", async (channel, tags, message, self) => {
 });
 
 sub.on("pmessage", (pattern: string, channel: string, message: string) => {
-  // log.info(`${pattern} ${channel} ${message}`);
   if (message === "expired") {
     const [, room] = channel.split(":");
 
@@ -165,12 +164,6 @@ async function main() {
     });
 
     socket.on("joinRoom", async (data) => {
-      // if (!data.room) {
-      //   log.info(`Channel not provided`);
-      //   socket.emit("no42fm");
-      //   return;
-      // }
-
       const room = data.room.toLowerCase();
 
       const user = await User.findOne({ where: { username: room } });
@@ -181,22 +174,6 @@ async function main() {
         socket.disconnect();
         return;
       }
-
-      // if (!user.channel.isEnabled) {
-      //   log.info(`Channel is not enabled`, { channel: data.room });
-      //   socket.emit("no42fm");
-      //   socket.disconnect();
-      //   return;
-      // }
-
-      // const is42fm = client.getChannels().includes(`#${data.room}`);
-
-      // if (!is42fm) {
-      //   log.info(`Channel is not enabled`, { channel: data.room });
-      //   socket.emit("no42fm");
-      //   socket.disconnect();
-      //   return;
-      // }
 
       logger.info("Socket joined room", { socket: socket.id, room: room });
       await socket.join(room);
@@ -251,23 +228,6 @@ async function main() {
           }
         })
         .catch((err) => logger.error(err));
-    });
-
-    socket.on("couldNotLoad", async (room) => {
-      const errors = await redisClient.incr(`${room}:errors`);
-      await redisClient.expire(`${room}:errors`, 10);
-      logger.info("Errors", { room, errors });
-
-      const sockets = await io.in(room).fetchSockets();
-
-      const half = sockets.length / 2;
-
-      logger.info("Number of errors", { room, errors, half });
-      if (errors > half) {
-        client.say(room, "Skipping because could not load song");
-        await redisClient.del(`${room}:errors`);
-        await skipSong(room);
-      }
     });
 
     socket.on("disconnecting", async () => {

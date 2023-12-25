@@ -34,10 +34,6 @@ router.get("/twitch", async (req: Request, res: Response) => {
     return res.sendStatus(500);
   }
 
-  // if (request) {
-  //   res.send(500);
-  // }
-
   // Get User Info
   let response: AxiosResponse<{ data: TwitchAuthResponse[] }>;
   try {
@@ -85,18 +81,6 @@ router.get("/twitch", async (req: Request, res: Response) => {
     }
   }
 
-  // const token = jwt.sign({ id: user.id }, "test123");
-
-  // console.log(token);
-
-  // res.cookie("access_token", token.toString(), {
-  //   // sameSite: "none",
-  //   // secure: false,
-  //   httpOnly: true,
-  // });
-
-  // res.cookie("rememberme", "1", { expires: new Date(Date.now() + 900000), httpOnly: true });
-
   res.send(`
         <html>
           <body style="witht:100vw;height:100vh;display:flex;align-items:center;justify-content:center">
@@ -106,73 +90,12 @@ router.get("/twitch", async (req: Request, res: Response) => {
         `);
 });
 
-// router.get("/me", async (req, res) => {
-//   try {
-//     const token = req.cookies["access_token"];
-
-//     if (!token) {
-//       return res.sendStatus(401);
-//     }
-
-//     const payload = jwt.verify(token, "test123") as { id: string };
-
-//     const user = await User.findOne({ where: { id: Number(payload.id) } });
-
-//     if (!user) {
-//       res.json({ message: "User not found" });
-//       return;
-//     }
-
-//     return res.json({ id: user.id, username: user.username });
-//   } catch (err) {
-//     console.log(err);
-//     res.sendStatus(500);
-//   }
-// });
-
 router.get("/twitch/mobile", async (req: Request, res: Response) => {
   console.log(req.query);
   console.log(req.params);
 
   res.redirect("fm://twitch/mobile");
 });
-
-// router.get("/twitch/user/:id", async (req: Request, res: Response) => {
-//   // get id
-//   const id = req.params.id;
-
-//   if (!id || typeof id !== "string") {
-//     return res.json({ message: "Invalid id" });
-//   }
-
-//   // Get User Info
-//   let response:AxiosResponse<{data: TwitchAuthResponse[]}, any>
-
-//   try {
-//     response = await axios.get("https://api.twitch.tv/helix/users", {
-//      headers: {
-//        Authorization: `Bearer ${request.data.access_token}`,
-//        "Client-Id": TWITCH_CLIENT_ID!,
-//      },
-//    });
-//   }  catch {
-//     return res.sendStatus(500)
-//   }
-
-//   const data: TwitchAuthResponse = response.data.data[0];
-// });
-
-// router.get("/channel/bot", auth, async (req, res) => {
-//   // @ts-ignore
-//   const user = await User.findOne({ where: { id: req.user.id }, select: { channel: { isEnabled: true } } });
-
-//   console.log(user);
-
-//   res.json({ connected: user.channel.isEnabled });
-// });
-
-// router.post("/channel/bot", auth, async (req,res) => {
-// })
 
 export default router;
 
