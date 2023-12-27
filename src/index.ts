@@ -91,6 +91,7 @@ sub.on("pmessage", (pattern: string, channel: string, message: string) => {
           .setex(`${room}:current`, parsedSong.duration, song)
           .then(() => {
             io.in(room).emit("song", { current: songWithTTL, list });
+            redisClient.del(`${room}:votes`);
           })
           .catch((err) => logger.error(err));
       });
@@ -234,62 +235,10 @@ async function main() {
       for (const room of Array.from(socket.rooms).slice(1)) {
         const sockets = await io.in(room).fetchSockets();
         io.in(room).emit("userCount", sockets.length - 1);
-        console.log(room, sockets.length);
+        logger.info(room, sockets.length);
       }
     });
   });
-}
-
-export function skipSong(room: string) {
-  return redisClient
-    .multi()
-    .get(`${room}:current`)
-    .lpop(`${room}:playlist`)
-    .lrange(`${room}:playlist`, 0, -1)
-    .exec((err, replies) => {
-      const [currentError, current] = replies[0] as [Error, string];
-      const [nextSongError, nextSong] = replies[1] as [Error, string];
-
-      if (currentError || nextSongError) {
-        client.say(room, "Error while skipping");
-        return;
-      }
-
-      logger.debug("Skip", { current, nextSong });
-
-      if (current === null) {
-        client.say(room, "Nothing to skip");
-        return;
-      }
-
-      // if there is a current song return the next song or return null?
-      if (nextSong === null) {
-        redisClient
-          .del(`${room}:current`)
-          .then(() => {
-            io.in(room).emit("skip", { type: "noplaylist" });
-          })
-          .catch((err) => logger.error(err));
-        return;
-      } else {
-        const parsedSong = JSON.parse(nextSong);
-
-        const currentWithTTL: CurrentSong = {
-          ...parsedSong,
-          isPlaying: true,
-        };
-
-        redisClient
-          .setex(`${room}:current`, parsedSong.duration, nextSong)
-          .then(() => {
-            io.in(room).emit("skip", {
-              type: "playlist",
-              current: currentWithTTL,
-            });
-          })
-          .catch((err) => logger.error(err));
-      }
-    });
 }
 
 (async function () {

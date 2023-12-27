@@ -1,10 +1,11 @@
-import { addSong } from "../commands";
+import { songManager } from "@constants/manager";
+import { songs } from "songs";
+import ytdl from "ytdl-core";
 import { client } from "../constants/tmi";
 import { redisClient } from "../db/redis";
-import { io, skipSong } from "../index";
+import { io } from "../index";
 import { Router } from "../lib/router";
 import { isOwner, isOwnerBroadcasterMod, isOwnerOrOwnerRoom } from "../middleware/tags";
-import { songs } from "../songs";
 import { logger } from "../utils/loggers";
 import { setRouter } from "./set";
 
@@ -37,10 +38,16 @@ prefixRouter.register("count", isOwner, (ctx) => {
   ctx.responder.respond(`Connected channels: ${count}`);
 });
 
-prefixRouter.register("random", isOwner, (ctx) => {
+prefixRouter.register("random", isOwner, ({ room, tags }) => {
   const song = songs[Math.floor(Math.random() * songs.length)];
 
-  addSong(ctx, [song]);
+  const id = ytdl.getURLVideoID(song);
+
+  songManager.add({
+    id,
+    room,
+    tags,
+  });
 });
 
 prefixRouter.register("ws", isOwner, async (ctx) => {
@@ -54,7 +61,7 @@ prefixRouter.register("ping", isOwnerOrOwnerRoom, (ctx) => {
 });
 
 prefixRouter.register("help", (ctx) => {
-  ctx.responder.respondWithMention(`available commands: !fm <link/title>, !fm song, !fm wrong`);
+  ctx.responder.respondWithMention(`available commands: !fm <link/id/title>, !fm song, !fm wrong`);
 });
 
 prefixRouter.register("song", async ({ responder, room }) => {
@@ -70,7 +77,7 @@ prefixRouter.register("song", async ({ responder, room }) => {
 
     responder.respondWithMention(`Current song: https://youtu.be/${currentSong.yt_id}`);
   } catch (e) {
-    console.log(e);
+    logger.error(e);
   }
 });
 
@@ -121,7 +128,9 @@ prefixRouter.register("disconnect", isOwnerBroadcasterMod, async (ctx) => {
 });
 
 prefixRouter.register("skip", isOwnerBroadcasterMod, async (ctx) => {
-  await skipSong(ctx.room);
+  await songManager.skip(ctx.room);
+
+  ctx.responder.respondWithMention("skipping...");
 });
 
 prefixRouter.register("play", isOwnerBroadcasterMod, async (ctx) => {
@@ -196,7 +205,37 @@ prefixRouter.register("set", isOwner, (ctx) => {
 });
 
 prefixRouter.register("search", (ctx) => {
-  ctx.responder.respondWithMention("use !fm <link/title> to add a song");
+  ctx.responder.respondWithMention("use !fm <link/title/id> to add a song");
+});
+
+prefixRouter.register("voteskip", async (ctx) => {
+  await redisClient.sadd(`${ctx.room}:votes`, ctx.tags["username"]);
+
+  let current;
+
+  try {
+    current = await redisClient.get(`${ctx.room}:current`);
+  } catch (err) {
+    logger.error(err);
+    return;
+  }
+
+  if (!current) {
+    ctx.responder.respondWithMention("nothing to skip");
+    return;
+  }
+
+  const votes = await redisClient.scard(`${ctx.room}:votes`);
+
+  const sockets = await io.in(ctx.room).fetchSockets();
+
+  if (votes >= Math.ceil(sockets.length / 2)) {
+    await redisClient.del(`${ctx.room}:votes`);
+    await songManager.skip(ctx.room);
+    ctx.responder.respond(`${votes}/${Math.ceil(sockets.length / 2)} votes, skipping...`);
+  } else {
+    ctx.responder.respond(`${votes}/${Math.ceil(sockets.length / 2)} votes`);
+  }
 });
 
 prefixRouter.registerNextRouter("set", setRouter);
