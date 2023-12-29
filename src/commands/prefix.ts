@@ -61,7 +61,7 @@ prefixRouter.register("ping", isOwnerOrOwnerRoom, (ctx) => {
 });
 
 prefixRouter.register("help", (ctx) => {
-  ctx.responder.respondWithMention(`available commands: !fm <link/id/title>, !fm song, !fm wrong`);
+  ctx.responder.respondWithMention(`available commands: !fm <link/id/title>, !fm song, !fm wrong, !fm voteskip`);
 });
 
 prefixRouter.register("song", async ({ responder, room }) => {
