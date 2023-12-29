@@ -22,92 +22,87 @@ export class SongManager {
    * Adds a song with the given id to a specific room
    */
   async add({ id, room, tags }: { id: string; room: string; tags: ChatUserstate }) {
-    try {
-      const videoResponse = await youtubeApi.videos.list({
-        part: ["contentDetails", "status", "snippet", "statistics"],
-        id: [id],
-        key: process.env.GOOGLE_API_KEY,
-      });
+    const videoResponse = await youtubeApi.videos.list({
+      part: ["contentDetails", "status", "snippet", "statistics"],
+      id: [id],
+      key: process.env.GOOGLE_API_KEY,
+    });
 
-      const item = videoResponse.data.items![0];
+    const item = videoResponse.data.items![0];
 
-      const channelResponse = await youtubeApi.channels.list({
-        part: ["snippet"],
-        id: [item.snippet?.channelId],
-        key: process.env.GOOGLE_API_KEY,
-      });
+    const channelResponse = await youtubeApi.channels.list({
+      part: ["snippet"],
+      id: [item.snippet?.channelId],
+      key: process.env.GOOGLE_API_KEY,
+    });
 
-      const isEmbeddable = item.status!.embeddable;
-      const isAgeRestricted = item.contentDetails!.contentRating!.ytRating === "ytAgeRestricted";
+    const isEmbeddable = item.status!.embeddable;
+    const isAgeRestricted = item.contentDetails!.contentRating!.ytRating === "ytAgeRestricted";
 
-      const title = item.snippet!.title!;
-      const channelName = item.snippet!.channelTitle!;
-      const views = Number(item.statistics!.viewCount);
-      const duration = toSeconds(parse(item.contentDetails!.duration!));
+    const title = item.snippet!.title!;
+    const channelName = item.snippet!.channelTitle!;
+    const views = Number(item.statistics!.viewCount);
+    const duration = toSeconds(parse(item.contentDetails!.duration!));
 
-      if (!isEmbeddable) {
-        throw new SongManagerError("video has embedds disabled");
-      }
-
-      if (isAgeRestricted) {
-        throw new SongManagerError("video is age restricted");
-      }
-
-      const { isBroadcaster, isMod, isOwner } = parseTags(tags);
-
-      if (!(isBroadcaster || isMod || isOwner)) {
-        if (views < config.get("SONG_MIN_VIEWS")) {
-          logger.info("Not enough views");
-          throw new SongManagerError(`song must have at least ${config.get("SONG_MIN_VIEWS")} views`);
-        }
-        if (duration < config.get("SONG_MIN_LENGTH")) {
-          logger.info("Not long enough");
-          throw new SongManagerError("song too short");
-        }
-        if (duration > config.get("SONG_MAX_LENGTH")) {
-          logger.info("Too long");
-          throw new SongManagerError("song too long");
-        }
-      }
-
-      const song: Song = {
-        yt_id: id,
-        title,
-        artist: channelName,
-        url: "https://youtube.com/" + id,
-        imgUrl: channelResponse.data.items![0].snippet?.thumbnails?.default?.url,
-        duration,
-        username: tags["username"],
-      };
-
-      // Add song to playlist with redis multi
-      redisClient
-        .multi()
-        .get(`${room}:current`)
-        .lrange(`${room}:playlist`, 0, -1)
-        .exec((err, replies) => {
-          const current = replies[0][1] as CurrentSong;
-          const playlist = replies[1][1] as Song[];
-
-          if (!current && playlist.length === 0) {
-            redisClient.setex(`${room}:current`, song.duration, JSON.stringify(song));
-
-            const temp: CurrentSong = {
-              ...song,
-              durationRemaining: song.duration,
-              isPlaying: true,
-            };
-
-            io.in(room).emit("song", { current: temp, list: playlist });
-          } else {
-            redisClient.rpush(`${room}:playlist`, JSON.stringify(song));
-            io.in(room).emit("playlistAdd", song);
-          }
-        });
-    } catch (error) {
-      logger.error(error);
-      throw new SongManagerError(`could not add song`);
+    if (!isEmbeddable) {
+      throw new SongManagerError("video has embedds disabled");
     }
+
+    if (isAgeRestricted) {
+      throw new SongManagerError("video is age restricted");
+    }
+
+    const { isBroadcaster, isMod, isOwner } = parseTags(tags);
+
+    if (!(isBroadcaster || isMod || isOwner)) {
+      if (views < config.get("SONG_MIN_VIEWS")) {
+        logger.info("Not enough views");
+        throw new SongManagerError(`song must have at least ${config.get("SONG_MIN_VIEWS")} views`);
+      }
+      if (duration < config.get("SONG_MIN_LENGTH")) {
+        logger.info("Not long enough");
+        throw new SongManagerError("song too short");
+      }
+      if (duration > config.get("SONG_MAX_LENGTH")) {
+        logger.info("Too long");
+        throw new SongManagerError("song too long");
+      }
+    }
+
+    const song: Song = {
+      yt_id: id,
+      title,
+      artist: channelName,
+      url: "https://youtube.com/" + id,
+      imgUrl: channelResponse.data.items![0].snippet?.thumbnails?.default?.url,
+      duration,
+      username: tags["username"],
+    };
+
+    // Add song to playlist with redis multi
+    redisClient
+      .multi()
+      .get(`${room}:current`)
+      .lrange(`${room}:playlist`, 0, -1)
+      .exec((err, replies) => {
+        const current = replies[0][1] as CurrentSong;
+        const playlist = replies[1][1] as Song[];
+
+        if (!current && playlist.length === 0) {
+          redisClient.setex(`${room}:current`, song.duration, JSON.stringify(song));
+
+          const temp: CurrentSong = {
+            ...song,
+            durationRemaining: song.duration,
+            isPlaying: true,
+          };
+
+          io.in(room).emit("song", { current: temp, list: playlist });
+        } else {
+          redisClient.rpush(`${room}:playlist`, JSON.stringify(song));
+          io.in(room).emit("playlistAdd", song);
+        }
+      });
   }
 
   /**

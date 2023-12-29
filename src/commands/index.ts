@@ -82,7 +82,7 @@ router.register(`!${COMMAND_PREFIX}`, async ({ responder, room, tags }, args) =>
       responder.respondWithMention(err.message);
     } else {
       logger.error(err);
-      responder.respondWithMention("error while adding video");
+      responder.respondWithMention("could not add song");
     }
   }
 });
