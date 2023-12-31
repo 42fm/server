@@ -71,7 +71,7 @@ router.get("/twitch", async (req: Request, res: Response) => {
         username: user.username,
         error,
       });
-      res.send(`
+      return res.send(`
       <html>
         <body style="witht:100vw;height:100vh;display:flex;align-items:center;justify-content:center">
           Channel added, but the bot did not join the channel yet.
