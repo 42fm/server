@@ -38,6 +38,7 @@ export class SongManager {
 
     const isEmbeddable = item.status!.embeddable;
     const isAgeRestricted = item.contentDetails!.contentRating!.ytRating === "ytAgeRestricted";
+    const isNotVideo = item.snippet.liveBroadcastContent !== "none";
 
     const title = item.snippet!.title!;
     const channelName = item.snippet!.channelTitle!;
@@ -50,6 +51,10 @@ export class SongManager {
 
     if (isAgeRestricted) {
       throw new SongManagerError("video is age restricted");
+    }
+
+    if (isNotVideo) {
+      throw new SongManagerError("livestreams and upcoming videos are not supported");
     }
 
     const { isBroadcaster, isMod, isOwner } = parseTags(tags);
