@@ -32,7 +32,7 @@ router.register(`!${COMMAND_PREFIX}`, async ({ responder, room, tags }, args) =>
   const totalSongsByUser = list.filter((item) => item.username === tags["display-name"]).length;
 
   // Only add to queuq if the total playlist duration is less than the max duration
-  if (totalSongsByUser >= 2) {
+  if (totalSongsByUser >= 5) {
     responder.respondWithMention("you have reached the maximum amount of songs in queue");
     return;
   }
