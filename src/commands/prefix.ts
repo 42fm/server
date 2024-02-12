@@ -225,16 +225,18 @@ prefixRouter.register("voteskip", async (ctx) => {
     return;
   }
 
-  const votes = await redisClient.scard(`${ctx.room}:votes`);
+  const totalVotes = await redisClient.scard(`${ctx.room}:votes`);
 
   const sockets = await io.in(ctx.room).fetchSockets();
 
-  if (votes >= Math.ceil(sockets.length / 2)) {
+  const thresholdVotes = Math.ceil(sockets.length / 10);
+
+  if (totalVotes >= thresholdVotes) {
     await redisClient.del(`${ctx.room}:votes`);
     await songManager.skip(ctx.room);
-    ctx.responder.respond(`${votes}/${Math.ceil(sockets.length / 2)} votes, skipping...`);
+    ctx.responder.respond(`${totalVotes}/${thresholdVotes} votes, skipping...`);
   } else {
-    ctx.responder.respond(`${votes}/${Math.ceil(sockets.length / 2)} votes`);
+    ctx.responder.respond(`${totalVotes}/${thresholdVotes} votes`);
   }
 });
 
