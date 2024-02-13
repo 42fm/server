@@ -1,4 +1,5 @@
 import { songManager } from "@constants/manager";
+import { SongManagerError } from "@lib/manager";
 import { songs } from "songs";
 import ytdl from "ytdl-core";
 import { client } from "../constants/tmi";
@@ -128,9 +129,17 @@ prefixRouter.register("disconnect", isOwnerBroadcasterMod, async (ctx) => {
 });
 
 prefixRouter.register("skip", isOwnerBroadcasterMod, async (ctx) => {
-  await songManager.skip(ctx.room);
-
-  ctx.responder.respondWithMention("skipping...");
+  try {
+    await songManager.skip(ctx.room);
+    ctx.responder.respondWithMention("skipping...");
+  } catch (err) {
+    if (err instanceof SongManagerError) {
+      ctx.responder.respondWithMention(err.message);
+    } else {
+      logger.error(err);
+      ctx.responder.respondWithMention("could not add song");
+    }
+  }
 });
 
 prefixRouter.register("play", isOwnerBroadcasterMod, async (ctx) => {
