@@ -5,6 +5,7 @@ import { youtubeApi } from "@constants/youtube";
 import { redisClient } from "@db/redis";
 import { SongManagerError } from "@lib/manager";
 import { Router } from "@lib/router";
+import { countUsage } from "@middleware/count";
 import { logger } from "@utils/loggers";
 import ytdl from "ytdl-core";
 import { prefixRouter } from "./prefix";
@@ -13,7 +14,7 @@ export const router = new Router();
 
 const { COMMAND_PREFIX } = process.env;
 
-router.register(`!${COMMAND_PREFIX}`, async ({ responder, room, tags }, args) => {
+router.register(`!${COMMAND_PREFIX}`, countUsage, async ({ responder, room, tags }, args) => {
   const input = args[0];
 
   let id: string;
