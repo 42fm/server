@@ -20,7 +20,7 @@ import "reflect-metadata";
 import { Server, ServerOptions } from "socket.io";
 import authRouter from "./routes/auth";
 
-const { PORT, URL, COMMAND_PREFIX } = process.env;
+const { PORT, URL, COMMAND_PREFIX, NODE_ENV, RENDER_GIT_COMMIT, TWITCH_USERNAME } = process.env;
 
 const app = express();
 
@@ -142,7 +142,11 @@ async function main() {
     logger.error(error);
   }
 
-  if (process.env.NODE_ENV === "development") {
+  if (NODE_ENV === "production") {
+    client.say(TWITCH_USERNAME, `version ${RENDER_GIT_COMMIT} is live`);
+  }
+
+  if (NODE_ENV === "development") {
     const user = await User.findOne({ where: { twitch_id: "158734200" } });
 
     if (!user) {
