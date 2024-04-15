@@ -146,21 +146,6 @@ async function main() {
     client.say(TWITCH_USERNAME, `version ${RENDER_GIT_COMMIT.slice(0, 7)} is live`);
   }
 
-  if (NODE_ENV === "development") {
-    const user = await User.findOne({ where: { twitch_id: "158734200" } });
-
-    if (!user) {
-      const newUser = User.create({
-        twitch_id: "158734200",
-        username: "loczuk2001",
-        display_name: "loczuk2001",
-        email: "test@test.com",
-      });
-
-      await newUser.save();
-    }
-  }
-
   io.on("connection", (socket) => {
     logger.info("New connection", { id: socket.id, ip: socket.handshake.address });
 
