@@ -143,7 +143,7 @@ async function main() {
   }
 
   if (NODE_ENV === "production") {
-    client.say(TWITCH_USERNAME, `version ${RENDER_GIT_COMMIT} is live`);
+    client.say(TWITCH_USERNAME, `version ${RENDER_GIT_COMMIT.slice(0, 7)} is live`);
   }
 
   if (NODE_ENV === "development") {
