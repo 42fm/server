@@ -18,7 +18,6 @@ import express from "express";
 import { createServer } from "http";
 import "reflect-metadata";
 import { Server, ServerOptions } from "socket.io";
-import authRouter from "./routes/auth";
 
 const { PORT, URL, COMMAND_PREFIX, NODE_ENV, RENDER_GIT_COMMIT, TWITCH_USERNAME } = process.env;
 
@@ -45,7 +44,6 @@ app.use(morganMiddleware);
 app.use(cookieParser());
 
 // Routes
-app.use(authRouter);
 app.use(healthRouter);
 
 client.on("message", async (channel, tags, message, self) => {
