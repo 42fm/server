@@ -1,8 +1,8 @@
 import axios, { AxiosResponse } from "axios";
 import { Request, Response, Router } from "express";
-import { client } from "../constants/tmi";
-import { User } from "../db/entity/User";
-import { logger } from "../utils/loggers";
+import { client } from "../constants/tmi.js";
+import { User } from "../db/entity/User.js";
+import { logger } from "../utils/loggers.js";
 
 const router = Router();
 

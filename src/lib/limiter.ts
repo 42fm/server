@@ -1,4 +1,4 @@
-import { redisClient } from "@db/redis";
+import { redisClient } from "@db/redis.js";
 
 class RateLimiter {
   time: number;

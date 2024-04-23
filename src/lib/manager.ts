@@ -1,9 +1,9 @@
-import { config } from "@constants/config";
-import { youtubeApi } from "@constants/youtube";
-import { redisClient } from "@db/redis";
-import { logger } from "@utils/loggers";
-import { parseTags } from "@utils/tagsParser";
-import { io } from "index";
+import { config } from "@constants/config.js";
+import { youtubeApi } from "@constants/youtube.js";
+import { redisClient } from "@db/redis.js";
+import { logger } from "@utils/loggers.js";
+import { parseTags } from "@utils/tagsParser.js";
+import { io } from "index.js";
 import { parse, toSeconds } from "iso8601-duration";
 import { ChatUserstate } from "tmi.js";
 

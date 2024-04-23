@@ -1,5 +1,5 @@
-import { redisClient } from "@db/redis";
-import { Context } from "@lib/router";
+import { redisClient } from "@db/redis.js";
+import { Context } from "@lib/router.js";
 
 export async function countUsage(ctx: Context, args: string[], next: () => void) {
   redisClient.incr(`count:${ctx.room}`);

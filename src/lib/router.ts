@@ -1,5 +1,5 @@
 import { ChatUserstate } from "tmi.js";
-import { Responder } from "./responder";
+import { Responder } from "./responder.js";
 
 export interface Context {
   responder: Responder;

@@ -1,4 +1,4 @@
-import { Config } from "@lib/config";
+import { Config } from "@lib/config.js";
 
 const config = new Config({
   SONG_MIN_VIEWS: 5_000,

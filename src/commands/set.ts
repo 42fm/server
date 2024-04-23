@@ -1,5 +1,5 @@
-import { config } from "@constants/config";
-import { Router } from "@lib/router";
+import { config } from "@constants/config.js";
+import { Router } from "@lib/router.js";
 
 export const setRouter = new Router();
 

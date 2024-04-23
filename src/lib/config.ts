@@ -1,5 +1,5 @@
-import { redisClient } from "@db/redis";
-import { logger } from "@utils/loggers";
+import { redisClient } from "@db/redis.js";
+import { logger } from "@utils/loggers.js";
 
 export class Config<T> {
   private settings: T;

@@ -1,14 +1,14 @@
-import { ONE_HOUR } from "@constants/constants";
-import { limiter } from "@constants/limiter";
-import { songManager } from "@constants/manager";
-import { youtubeApi } from "@constants/youtube";
-import { redisClient } from "@db/redis";
-import { SongManagerError } from "@lib/manager";
-import { Router } from "@lib/router";
-import { countUsage } from "@middleware/count";
-import { logger } from "@utils/loggers";
+import { ONE_HOUR } from "@constants/constants.js";
+import { limiter } from "@constants/limiter.js";
+import { songManager } from "@constants/manager.js";
+import { youtubeApi } from "@constants/youtube.js";
+import { redisClient } from "@db/redis.js";
+import { SongManagerError } from "@lib/manager.js";
+import { Router } from "@lib/router.js";
+import { countUsage } from "@middleware/count.js";
+import { logger } from "@utils/loggers.js";
 import ytdl from "ytdl-core";
-import { prefixRouter } from "./prefix";
+import { prefixRouter } from "./prefix.js";
 
 export const router = new Router();
 

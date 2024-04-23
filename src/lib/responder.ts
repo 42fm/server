@@ -1,5 +1,5 @@
 import { ChatUserstate, Client } from "tmi.js";
-import { Queue } from "./queue";
+import { Queue } from "./queue.js";
 
 export class Responder {
   client: Client;

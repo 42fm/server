@@ -1,5 +1,5 @@
 import morgan, { StreamOptions } from "morgan";
-import { logger } from "../utils/loggers";
+import { logger } from "../utils/loggers.js";
 
 const stream: StreamOptions = {
   // Use the http severity

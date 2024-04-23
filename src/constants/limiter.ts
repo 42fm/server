@@ -1,5 +1,5 @@
-import RateLimiter from "@lib/limiter";
-import { ONE_DAY_IN_SECONDS } from "./constants";
+import RateLimiter from "@lib/limiter.js";
+import { ONE_DAY_IN_SECONDS } from "./constants.js";
 
 const { NODE_ENV } = process.env;
 

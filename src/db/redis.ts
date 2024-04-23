@@ -1,5 +1,5 @@
 import { Redis } from "ioredis";
-import { logger } from "../utils/loggers";
+import { logger } from "../utils/loggers.js";
 
 const { REDIS_URL } = process.env;
 

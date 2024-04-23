@@ -1,14 +1,14 @@
-import { songManager } from "@constants/manager";
-import { SongManagerError } from "@lib/manager";
-import { songs } from "songs";
+import { songManager } from "@constants/manager.js";
+import { SongManagerError } from "@lib/manager.js";
+import { songs } from "songs.js";
 import ytdl from "ytdl-core";
-import { client } from "../constants/tmi";
-import { redisClient } from "../db/redis";
-import { io } from "../index";
-import { Router } from "../lib/router";
-import { isOwner, isOwnerBroadcasterMod, isOwnerOrOwnerRoom } from "../middleware/tags";
-import { logger } from "../utils/loggers";
-import { setRouter } from "./set";
+import { client } from "../constants/tmi.js";
+import { redisClient } from "../db/redis.js";
+import { io } from "../index.js";
+import { Router } from "../lib/router.js";
+import { isOwner, isOwnerBroadcasterMod, isOwnerOrOwnerRoom } from "../middleware/tags.js";
+import { logger } from "../utils/loggers.js";
+import { setRouter } from "./set.js";
 
 export const prefixRouter = new Router();
 
