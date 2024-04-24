@@ -58,7 +58,7 @@ client.on("message", async (channel, tags, message, self) => {
 
   const responder = new Responder(client, tags, room, queue);
 
-  logger.info("Command sent", { username: tags["display-name"], channel, command, args });
+  logger.info("Command sent", { username: tags["username"], channel, command, args });
 
   router.route({ responder, room, tags }, [prefix.toLowerCase(), command, ...args], 0);
 });
