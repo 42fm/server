@@ -94,7 +94,7 @@ prefixRouter.register("wrong", async ({ responder, room, tags }) => {
   let found;
 
   for (let i = list.length - 1; i > -1; i--) {
-    if (list[i].username === tags["display-name"]) {
+    if (list[i].username === tags["username"]) {
       found = list[i];
       break;
     }
