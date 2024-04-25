@@ -96,7 +96,7 @@ setRouter.register("streamSync", async (ctx, args) => {
     return;
   }
 
-  if (args[0].toLowerCase() !== "true" || args[0].toLowerCase() !== "false") {
+  if (args[0].toLowerCase() !== "true" && args[0].toLowerCase() !== "false") {
     ctx.responder.respond("Please provide a true or false value");
     return;
   }
