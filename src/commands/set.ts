@@ -1,9 +1,9 @@
-import { config } from "@constants/config.js";
+import { User } from "@db/entity/User.js";
 import { Router } from "@lib/router.js";
 
 export const setRouter = new Router();
 
-setRouter.register("min-views", async (ctx, args) => {
+setRouter.register("minViews", async (ctx, args) => {
   if (args[0] === undefined) {
     ctx.responder.respond("No views count provided");
     return;
@@ -16,14 +16,23 @@ setRouter.register("min-views", async (ctx, args) => {
     return;
   }
 
-  const prev = config.get("SONG_MIN_VIEWS");
+  const user = await User.findOne({
+    where: {
+      username: ctx.room,
+    },
+    relations: {
+      settings: true,
+    },
+  });
 
-  await config.set("SONG_MIN_VIEWS", num);
+  user.settings.minViews = num;
 
-  ctx.responder.respond(`Minimum views changed from ${prev} to ${num}`);
+  await user.settings.save();
+
+  ctx.responder.respond(`Minimum views changed to ${num} views`);
 });
 
-setRouter.register("min-length", async (ctx, args) => {
+setRouter.register("minDuration", async (ctx, args) => {
   if (args[0] === undefined) {
     ctx.responder.respond("No length provided");
     return;
@@ -36,14 +45,23 @@ setRouter.register("min-length", async (ctx, args) => {
     return;
   }
 
-  const prev = config.get("SONG_MIN_LENGTH");
+  const user = await User.findOne({
+    where: {
+      username: ctx.room,
+    },
+    relations: {
+      settings: true,
+    },
+  });
 
-  await config.set("SONG_MIN_LENGTH", num);
+  user.settings.minDuration = num;
 
-  ctx.responder.respond(`Minimum length changed from ${prev} to ${num}`);
+  await user.settings.save();
+
+  ctx.responder.respond(`Minimum duration changed to ${num} seconds`);
 });
 
-setRouter.register("max-length", async (ctx, args) => {
+setRouter.register("maxDuration", async (ctx, args) => {
   if (args[0] === undefined) {
     ctx.responder.respond("No length provided");
     return;
@@ -56,9 +74,47 @@ setRouter.register("max-length", async (ctx, args) => {
     return;
   }
 
-  const prev = config.get("SONG_MAX_LENGTH");
+  const user = await User.findOne({
+    where: {
+      username: ctx.room,
+    },
+    relations: {
+      settings: true,
+    },
+  });
 
-  await config.set("SONG_MAX_LENGTH", num);
+  user.settings.maxDuration = num;
 
-  ctx.responder.respond(`Maximum length changed from ${prev} to ${num}`);
+  await user.settings.save();
+
+  ctx.responder.respond(`Maximum duration changed to ${num} seconds`);
+});
+
+setRouter.register("streamSync", async (ctx, args) => {
+  if (args[0] === undefined) {
+    ctx.responder.respond("No length provided");
+    return;
+  }
+
+  if (args[0].toLowerCase() !== "true" || args[0].toLowerCase() !== "false") {
+    ctx.responder.respond("Please provide a true or false value");
+    return;
+  }
+
+  const bool = args[0].toLowerCase() === "true";
+
+  const user = await User.findOne({
+    where: {
+      username: ctx.room,
+    },
+    relations: {
+      settings: true,
+    },
+  });
+
+  user.settings.streamSync = bool;
+
+  await user.settings.save();
+
+  ctx.responder.respond(`Changed stream sync to ${bool}`);
 });

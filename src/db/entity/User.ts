@@ -4,18 +4,20 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
   Relation,
   UpdateDateColumn,
 } from "typeorm";
-import { Channel } from "./Channel";
+import { Channel } from "./Channel.js";
+import { Settings } from "./Settings.js";
 
 @Entity()
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
+  @Column({ unique: true })
   twitch_id!: string;
 
   @Column()
@@ -30,6 +32,10 @@ export class User extends BaseEntity {
   @Column(() => Channel)
   @JoinColumn()
   channel: Relation<Channel>;
+
+  @OneToOne(() => Settings)
+  @JoinColumn()
+  settings: Settings | null;
 
   @CreateDateColumn()
   created_at: Date;
