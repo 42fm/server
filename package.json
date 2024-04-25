@@ -12,7 +12,7 @@
     "build": "rm -rf dist/ && tsc -p . && tsc-alias",
     "lint": "eslint src/**/*.ts ./**/*.ts",
     "lint:fix": "eslint src/**/*.ts ./**/*.ts --fix",
-    "migration:generate": "typeorm-ts-node-esm migration:generate -d src/db/index.ts",
+    "migration:generate": "typeorm-ts-node-esm migration:generate --pretty -d src/db/index.ts",
     "migration:create": "typeorm-ts-node-esm migration:create",
     "migration:run": "typeorm-ts-node-esm migration:run -d src/db/index.ts",
     "migration:revert": "typeorm-ts-node-esm migration:revert -d src/db/index.ts"
