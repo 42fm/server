@@ -59,5 +59,11 @@
     "globals": "^15.0.0",
     "ts-node": "^10.9.2",
     "typescript-eslint": "^7.7.1"
+  },
+  "imports": {
+    "#tmi": {
+      "node": "tmi.js",
+      "default": "./node_modules/tmi.js/index.js"
+    }
   }
 }

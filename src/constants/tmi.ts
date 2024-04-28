@@ -1,4 +1,4 @@
-import tmi from "tmi.js";
+import tmi from "#tmi";
 
 const { NODE_ENV, DEBUG_TMI, TWITCH_USERNAME, TWITCH_OAUTH } = process.env;
 

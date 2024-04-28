@@ -1,12 +1,12 @@
 import { songManager } from "@constants/manager.js";
 import { SongManagerError } from "@lib/manager.js";
-import { songs } from "songs.js";
 import ytdl from "ytdl-core";
 import { client } from "../constants/tmi.js";
 import { redisClient } from "../db/redis.js";
 import { io } from "../index.js";
 import { Router } from "../lib/router.js";
 import { isOwner, isOwnerBroadcasterMod, isOwnerOrOwnerRoom } from "../middleware/tags.js";
+import { songs } from "../songs.js";
 import { logger } from "../utils/loggers.js";
 import { setRouter } from "./set.js";
 
