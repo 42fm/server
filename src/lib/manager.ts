@@ -1,11 +1,11 @@
-import { config } from "@constants/config.js";
 import { youtubeApi } from "@constants/youtube.js";
+import { User } from "@db/entity/User.js";
 import { redisClient } from "@db/redis.js";
 import { logger } from "@utils/loggers.js";
 import { parseTags } from "@utils/tagsParser.js";
-import { io } from "index.js";
 import { parse, toSeconds } from "iso8601-duration";
 import { ChatUserstate } from "tmi.js";
+import { io } from "../index.js";
 
 /**
  * The purpose of this custom error is to catch them later and display the message to the user, but in case of a regular error we don't want to display anything.
@@ -57,20 +57,35 @@ export class SongManager {
       throw new SongManagerError("livestreams and upcoming videos are not supported");
     }
 
+    const user = await User.findOne({
+      select: {
+        settings: {
+          maxDuration: true,
+          minDuration: true,
+          minViews: true,
+        },
+      },
+      where: { username: room },
+      relations: {
+        settings: true,
+      },
+    });
+
+    if (!user) {
+      throw new SongManagerError("user not found");
+    }
+
     const { isBroadcaster, isMod, isOwner } = parseTags(tags);
 
     if (!(isBroadcaster || isMod || isOwner)) {
-      if (views < config.get("SONG_MIN_VIEWS")) {
-        logger.info("Not enough views");
-        throw new SongManagerError(`song must have at least ${config.get("SONG_MIN_VIEWS")} views`);
+      if (views < user.settings.minViews) {
+        throw new SongManagerError(`song must have at least ${user.settings.minViews} views`);
       }
-      if (duration < config.get("SONG_MIN_LENGTH")) {
-        logger.info("Not long enough");
-        throw new SongManagerError("song too short");
+      if (duration < user.settings.minDuration) {
+        throw new SongManagerError(`video must be at least ${user.settings.minDuration} seconds long`);
       }
-      if (duration > config.get("SONG_MAX_LENGTH")) {
-        logger.info("Too long");
-        throw new SongManagerError("song too long");
+      if (duration > user.settings.maxDuration) {
+        throw new SongManagerError(`song too long, max duration is ${user.settings.maxDuration} seconds`);
       }
     }
 
