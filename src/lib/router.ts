@@ -7,7 +7,7 @@ export interface Context {
   tags: ChatUserstate;
 }
 
-type RouteMiddleware = (ctx: Context, args: string[], next?: () => void) => void;
+type RouteMiddleware = (ctx: Context, args: string[], next?: () => void) => Promise<void> | void;
 
 interface Route {
   middlewares: RouteMiddleware[];
@@ -34,7 +34,7 @@ export class Router<K extends string = string> {
     router.router = nextRouter;
   }
 
-  route(ctx: Context, segments: K[], idx: number): void {
+  async route(ctx: Context, segments: K[], idx: number): Promise<void> {
     if (!this.routes.has(segments[idx])) return;
 
     const { middlewares, cb, router } = this.routes.get(segments[idx]);
@@ -42,7 +42,7 @@ export class Router<K extends string = string> {
     for (const middleware of middlewares) {
       let calledBack = false;
       const callback = () => (calledBack = true);
-      middleware(ctx, segments, callback);
+      await middleware(ctx, segments, callback);
       if (!calledBack) return;
     }
 
