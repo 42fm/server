@@ -1,5 +1,4 @@
 import { router } from "@commands/index.js";
-import { config } from "@constants/config.js";
 import { queue } from "@constants/queue.js";
 import { client } from "@constants/tmi.js";
 import { User } from "@db/entity/User.js";
@@ -124,12 +123,6 @@ async function connectToChannels() {
 async function main() {
   try {
     await client.connect();
-  } catch (error) {
-    logger.error(error);
-  }
-
-  try {
-    await config.init();
   } catch (error) {
     logger.error(error);
   }
