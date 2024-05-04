@@ -17,10 +17,10 @@ router.get("/twitch", async (req: Request, res: Response) => {
   }
 
   // https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=as9g1b0p5gcioxg2u02imxsh2xknzr&redirect_uri=https://api.42fm.app/twitch&scope=user:read:email
-  // Get Access Token (OAuth authorization code flow)
-  let request: AxiosResponse<TwitchAppAccessTokenResponse> = null;
+  // Get User Access Token (OAuth authorization code flow)
+  let responseToken: AxiosResponse<TwitchAppAccessTokenResponse> | undefined;
   try {
-    request = await axios.post<TwitchAppAccessTokenResponse>(
+    responseToken = await axios.post<TwitchAppAccessTokenResponse>(
       "https://id.twitch.tv/oauth2/token",
       new URLSearchParams({
         client_id: TWITCH_CLIENT_ID!,
@@ -35,11 +35,11 @@ router.get("/twitch", async (req: Request, res: Response) => {
   }
 
   // Get User Info
-  let response: AxiosResponse<{ data: TwitchAuthResponse[] }>;
+  let responseUser: AxiosResponse<{ data: TwitchAuthResponse[] }>;
   try {
-    response = await axios.get("https://api.twitch.tv/helix/users", {
+    responseUser = await axios.get("https://api.twitch.tv/helix/users", {
       headers: {
-        Authorization: `Bearer ${request.data.access_token}`,
+        Authorization: `Bearer ${responseToken.data.access_token}`,
         "Client-Id": TWITCH_CLIENT_ID!,
       },
     });
@@ -47,7 +47,7 @@ router.get("/twitch", async (req: Request, res: Response) => {
     return res.sendStatus(500);
   }
 
-  const data: TwitchAuthResponse = response.data.data[0];
+  const data: TwitchAuthResponse = responseUser.data.data[0];
 
   let user: User | null;
   user = await User.findOne({ where: { twitch_id: data.id } });
