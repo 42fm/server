@@ -59,6 +59,7 @@ router.register(`!${COMMAND_PREFIX}`, async ({ responder, room, tags }, args) =>
     try {
       const response = await youtubeApi.search.list({
         part: ["snippet"],
+        type: ["video"],
         maxResults: 1,
         q: args.join(" "),
         key: process.env.GOOGLE_API_KEY,
