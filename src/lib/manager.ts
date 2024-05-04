@@ -32,13 +32,13 @@ export class SongManager {
 
     const channelResponse = await youtubeApi.channels.list({
       part: ["snippet"],
-      id: [item.snippet?.channelId],
-      key: process.env.GOOGLE_API_KEY,
+      id: [item.snippet!.channelId!],
+      key: process.env.GOOGLE_API_KEY!,
     });
 
     const isEmbeddable = item.status!.embeddable;
     const isAgeRestricted = item.contentDetails!.contentRating!.ytRating === "ytAgeRestricted";
-    const isNotVideo = item.snippet.liveBroadcastContent !== "none";
+    const isNotVideo = item.snippet!.liveBroadcastContent !== "none";
 
     const title = item.snippet!.title!;
     const channelName = item.snippet!.channelTitle!;
@@ -94,9 +94,9 @@ export class SongManager {
       title,
       artist: channelName,
       url: "https://youtube.com/" + id,
-      imgUrl: channelResponse.data.items![0].snippet?.thumbnails?.default?.url,
+      imgUrl: channelResponse.data.items![0].snippet!.thumbnails!.default!.url!,
       duration,
-      username: tags["username"],
+      username: tags["username"]!,
     };
 
     // Add song to playlist with redis multi
@@ -105,8 +105,8 @@ export class SongManager {
       .get(`${room}:current`)
       .lrange(`${room}:playlist`, 0, -1)
       .exec((err, replies) => {
-        const current = replies[0][1] as CurrentSong;
-        const playlist = replies[1][1] as Song[];
+        const current = replies![0][1] as CurrentSong;
+        const playlist = replies![1][1] as Song[];
 
         if (!current && playlist.length === 0) {
           redisClient.setex(`${room}:current`, song.duration, JSON.stringify(song));
@@ -135,8 +135,8 @@ export class SongManager {
       .get(`${room}:current`)
       .lpop(`${room}:playlist`)
       .exec((err, replies) => {
-        const [currentError, current] = replies[0] as [Error, string];
-        const [nextSongError, nextSong] = replies[1] as [Error, string];
+        const [currentError, current] = replies![0] as [Error, string];
+        const [nextSongError, nextSong] = replies![1] as [Error, string];
 
         if (currentError || nextSongError) {
           throw new SongManagerError("Error while skipping");

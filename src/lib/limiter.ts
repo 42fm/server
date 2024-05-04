@@ -16,7 +16,7 @@ class RateLimiter {
       .expire("ratelimit:" + key, this.time)
       .exec();
 
-    const [, inc] = res[0] as [Error, number];
+    const [, inc] = res![0] as [Error, number];
 
     return inc > this.max;
   }

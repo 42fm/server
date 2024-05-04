@@ -6,5 +6,5 @@ export class Channel extends BaseEntity {
   id!: number;
 
   @Column("boolean", { default: true })
-  isEnabled: boolean;
+  isEnabled!: boolean;
 }

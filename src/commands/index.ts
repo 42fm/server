@@ -50,7 +50,7 @@ router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags }
   } else if (ytdl.validateID(input)) {
     id = ytdl.getVideoID(input);
   } else {
-    const exceedsLimit = await limiter.consume(tags["user-id"]);
+    const exceedsLimit = await limiter.consume(tags["user-id"]!);
 
     if (exceedsLimit) {
       responder.respondWithMention("search ratelimit exceeded, use a link to add a song");
@@ -66,7 +66,7 @@ router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags }
         key: process.env.GOOGLE_API_KEY,
       });
 
-      id = response.data.items[0].id.videoId;
+      id = response.data.items![0].id!.videoId!;
     } catch {
       responder.respondWithMention("unable to find video");
       return;

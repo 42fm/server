@@ -6,14 +6,14 @@ export class Settings extends BaseEntity {
   id!: number;
 
   @Column("int", { default: 10_000 })
-  minViews: number;
+  minViews!: number;
 
   @Column("int", { default: 30 })
-  minDuration: number;
+  minDuration!: number;
 
   @Column("int", { default: 1_200 })
-  maxDuration: number;
+  maxDuration!: number;
 
   @Column("bool", { default: false })
-  streamSync: boolean;
+  streamSync!: boolean;
 }

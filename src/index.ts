@@ -27,7 +27,7 @@ const httpServer = createServer(app);
 
 const options: Partial<ServerOptions> = {
   cors: {
-    origin: [URL],
+    origin: [URL!],
   },
 };
 
@@ -72,8 +72,8 @@ sub.on("pmessage", (pattern: string, channel: string, message: string) => {
       .lpop(`${room}:playlist`)
       .lrange(`${room}:playlist`, 0, -1)
       .exec((err, replies) => {
-        const song = replies[0][1] as string;
-        const playlist = replies[1][1] as string[];
+        const song = replies![0][1] as string;
+        const playlist = replies![1][1] as string[];
 
         if (!song) return;
 
@@ -141,7 +141,7 @@ async function main() {
   }
 
   if (NODE_ENV === "production") {
-    client.say(TWITCH_USERNAME, `version ${RENDER_GIT_COMMIT.slice(0, 7)} is live`);
+    client.say(TWITCH_USERNAME!, `version ${RENDER_GIT_COMMIT!.slice(0, 7)} is live`);
   }
 
   io.on("connection", (socket) => {
@@ -176,9 +176,9 @@ async function main() {
         .lrange(`${room}:playlist`, 0, -1)
         .ttl(`${room}:current`)
         .exec((err, replies) => {
-          const [, current] = replies[0] as [Error, string];
-          const [, playlist] = replies[1] as [Error, string[]];
-          const [, ttl] = replies[2] as [Error, number];
+          const [, current] = replies![0] as [Error, string];
+          const [, playlist] = replies![1] as [Error, string[]];
+          const [, ttl] = replies![2] as [Error, number];
 
           let isPlaying;
 

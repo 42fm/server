@@ -1,8 +1,8 @@
 class QueueNode {
-  cb: () => void;
-  next: QueueNode;
+  cb?: () => void;
+  next?: QueueNode;
 
-  constructor(cb?: () => void, next?: QueueNode) {
+  constructor(cb?: (() => void) | undefined, next?: QueueNode) {
     this.cb = cb;
     this.next = next;
   }
@@ -30,7 +30,9 @@ export class Queue {
     let dummy = this.head;
 
     while (dummy.next && this.remaining > 0) {
-      dummy.next.cb();
+      if (dummy.next.cb) {
+        dummy.next.cb();
+      }
       dummy = dummy.next;
       this.remaining -= 1;
     }

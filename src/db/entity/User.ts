@@ -6,7 +6,6 @@ import {
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
-  Relation,
   UpdateDateColumn,
 } from "typeorm";
 import { Channel } from "./Channel.js";
@@ -31,15 +30,15 @@ export class User extends BaseEntity {
 
   @Column(() => Channel)
   @JoinColumn()
-  channel: Relation<Channel>;
+  channel!: Channel;
 
   @OneToOne(() => Settings)
   @JoinColumn()
-  settings: Settings | null;
+  settings!: Settings;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updated_at!: Date;
 }

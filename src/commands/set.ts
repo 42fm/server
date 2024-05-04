@@ -25,6 +25,11 @@ setRouter.register("minViews", async (ctx, args) => {
     },
   });
 
+  if (!user) {
+    ctx.responder.respond("User not found");
+    return;
+  }
+
   user.settings.minViews = num;
 
   await user.settings.save();
@@ -53,6 +58,11 @@ setRouter.register("minDuration", async (ctx, args) => {
       settings: true,
     },
   });
+
+  if (!user) {
+    ctx.responder.respond("User not found");
+    return;
+  }
 
   user.settings.minDuration = num;
 
@@ -83,6 +93,11 @@ setRouter.register("maxDuration", async (ctx, args) => {
     },
   });
 
+  if (!user) {
+    ctx.responder.respond("User not found");
+    return;
+  }
+
   user.settings.maxDuration = num;
 
   await user.settings.save();
@@ -111,6 +126,11 @@ setRouter.register("streamSync", async (ctx, args) => {
       settings: true,
     },
   });
+
+  if (!user) {
+    ctx.responder.respond("User not found");
+    return;
+  }
 
   user.settings.streamSync = bool;
 

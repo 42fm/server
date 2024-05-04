@@ -12,19 +12,24 @@ const { TWITCH_CLIENT_ID, TWITCH_SECRET } = process.env;
 
 async function getNewAppAccessToken() {
   // Get App Access Token (Client credentials grant flow)
-  let response: AxiosResponse<TwitchAppAccessTokenResponse> = null;
+  let response: AxiosResponse<TwitchAppAccessTokenResponse> | undefined;
 
   try {
     response = await axios.post<TwitchAppAccessTokenResponse>(
       "https://id.twitch.tv/oauth2/token",
       new URLSearchParams({
-        client_id: TWITCH_CLIENT_ID,
-        client_secret: TWITCH_SECRET,
+        client_id: TWITCH_CLIENT_ID!,
+        client_secret: TWITCH_SECRET!,
         grant_type: "client_credentials",
       })
     );
   } catch {
     logger.error("Could not get twitch token");
+  }
+
+  if (!response) {
+    logger.error("Could not get twitch token");
+    return;
   }
 
   return response.data;
@@ -38,6 +43,7 @@ export async function getAppAccessToken() {
 
     if (!token) {
       const data = await getNewAppAccessToken();
+      if (!data) return null;
       await redisClient.setex("app_access_token", data.expires_in - 60, data.access_token);
       token = data.access_token;
       logger.info("Got new app access token");

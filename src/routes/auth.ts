@@ -23,8 +23,8 @@ router.get("/twitch", async (req: Request, res: Response) => {
     request = await axios.post<TwitchAppAccessTokenResponse>(
       "https://id.twitch.tv/oauth2/token",
       new URLSearchParams({
-        client_id: TWITCH_CLIENT_ID,
-        client_secret: TWITCH_SECRET,
+        client_id: TWITCH_CLIENT_ID!,
+        client_secret: TWITCH_SECRET!,
         code,
         grant_type: "authorization_code",
         redirect_uri: URL + "/twitch",

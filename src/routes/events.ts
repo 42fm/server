@@ -64,9 +64,7 @@ router.post("/eventsub", raw({ type: "application/json" }), async (req, res) => 
 });
 
 function getSecret() {
-  // TODO: Get secret from secure storage. This is the secret you pass
-  // when you subscribed to the event.
-  return TWITCH_EVENTS_SECRET;
+  return TWITCH_EVENTS_SECRET!;
 }
 
 // Build the message used to get the HMAC.

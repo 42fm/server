@@ -7,7 +7,10 @@ export interface Context {
   tags: ChatUserstate;
 }
 
-type RouteMiddleware = (ctx: Context, args: string[], next?: () => void) => Promise<void> | void;
+export type Args = string[];
+export type Next = () => void;
+
+type RouteMiddleware = (ctx: Context, args: string[], next: Next) => Promise<void> | void;
 
 interface Route {
   middlewares: RouteMiddleware[];
@@ -31,13 +34,24 @@ export class Router<K extends string = string> {
 
   registerNextRouter(name: K, nextRouter: Router) {
     const router = this.routes.get(name);
+
+    if (!router) {
+      throw new Error("Router not found");
+    }
+
     router.router = nextRouter;
   }
 
   async route(ctx: Context, segments: K[], idx: number): Promise<void> {
     if (!this.routes.has(segments[idx])) return;
 
-    const { middlewares, cb, router } = this.routes.get(segments[idx]);
+    const route = this.routes.get(segments[idx]);
+
+    if (!route) {
+      throw new Error("Route not found");
+    }
+
+    const { middlewares, cb, router } = route;
 
     for (const middleware of middlewares) {
       let calledBack = false;
@@ -49,7 +63,9 @@ export class Router<K extends string = string> {
     if (router !== undefined && idx !== segments.length - 1 && router.routes.has(segments[idx + 1])) {
       router.route(ctx, segments, idx + 1);
     } else {
-      cb(ctx, segments.slice(idx + 1, segments.length));
+      cb(ctx, segments.slice(idx + 1, segments.length), () => {
+        throw new Error("Route not found");
+      });
     }
   }
 }
