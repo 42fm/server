@@ -1,5 +1,8 @@
 import { songManager } from "@constants/manager.js";
+import { Ban } from "@db/entity/Ban.js";
 import { SongManagerError } from "@lib/manager.js";
+import { GetUserError, HelixUser, getUser } from "@utils/getUser.js";
+import { QueryFailedError } from "typeorm";
 import ytdl from "ytdl-core";
 import { client } from "../constants/tmi.js";
 import { redisClient } from "../db/redis.js";
@@ -247,6 +250,70 @@ prefixRouter.register("voteskip", async (ctx) => {
   } else {
     ctx.responder.respond(`${totalVotes}/${thresholdVotes} votes`);
   }
+});
+
+prefixRouter.register("ban", isOwnerBroadcasterMod, async (ctx, args) => {
+  let user: HelixUser | undefined;
+
+  try {
+    user = await getUser(args[0]);
+  } catch (err) {
+    if (err instanceof GetUserError) {
+      ctx.responder.respondWithMention(err.message);
+    } else {
+      logger.error(err);
+      ctx.responder.respondWithMention("Could not get user");
+    }
+    return;
+  }
+
+  try {
+    await Ban.insert({
+      user_twitch_id: user.id,
+      channel_twitch_id: ctx.tags["room-id"],
+    });
+    logger.info("user banned");
+    ctx.responder.respondWithMention("user has been banned");
+  } catch (err) {
+    if (err instanceof QueryFailedError) {
+      ctx.responder.respondWithMention("user has already been banned");
+    } else {
+      logger.error(err);
+      ctx.responder.respondWithMention("error while banning");
+    }
+  }
+});
+
+prefixRouter.register("unban", isOwnerBroadcasterMod, async (ctx, args) => {
+  let user: HelixUser | undefined;
+
+  try {
+    user = await getUser(args[0]);
+  } catch (err) {
+    if (err instanceof GetUserError) {
+      ctx.responder.respondWithMention(err.message);
+    } else {
+      logger.error(err);
+      ctx.responder.respondWithMention("Could not get user");
+    }
+    return;
+  }
+
+  if (!user) {
+    ctx.responder.respondWithMention("User not found");
+    return;
+  }
+
+  const ban = await Ban.findOne({ where: { channel_twitch_id: ctx.tags["room-id"], user_twitch_id: user.id } });
+
+  if (!ban) {
+    ctx.responder.respondWithMention("User is not banned");
+    return;
+  }
+
+  await ban.remove();
+
+  ctx.responder.respondWithMention("User has been unbanned");
 });
 
 prefixRouter.registerNextRouter("set", setRouter);
