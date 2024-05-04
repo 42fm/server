@@ -5,6 +5,7 @@
     "module": "NodeNext",
     "esModuleInterop": true,
     "target": "ESNext",
+    "skipLibCheck": true,
     "noImplicitAny": true,
     "moduleResolution": "NodeNext",
     "sourceMap": true,
