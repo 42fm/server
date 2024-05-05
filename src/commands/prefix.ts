@@ -212,7 +212,7 @@ prefixRouter.register("pause", isOwnerBroadcasterMod, async (ctx) => {
     });
 });
 
-prefixRouter.register("set", isOwner, (ctx) => {
+prefixRouter.register("set", isOwnerBroadcasterMod, (ctx) => {
   ctx.responder.respondWithMention("available commands: " + Array.from(setRouter.routes.keys()).join(", "));
 });
 
