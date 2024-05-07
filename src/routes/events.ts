@@ -29,10 +29,9 @@ eventsRouter.post("/eventsub", raw({ type: "application/json" }), async (req, re
 
     const notification = JSON.parse(req.body);
 
-    const room = notification.event.broadcaster_user_login.toLowerCase();
-
     if (MESSAGE_TYPE_NOTIFICATION === req.headers[MESSAGE_TYPE]) {
       if (notification.subscription.type === "stream.online") {
+        const room = notification.event.broadcaster_user_login.toLowerCase();
         logger.info(`Pausing ${notification.event.broadcaster_user_login} because they went live`);
         try {
           await songManager.pause(room);
@@ -41,6 +40,7 @@ eventsRouter.post("/eventsub", raw({ type: "application/json" }), async (req, re
           logger.error(err);
         }
       } else if (notification.subscription.type === "stream.offline") {
+        const room = notification.event.broadcaster_user_login.toLowerCase();
         logger.info(`Resuming ${notification.event.broadcaster_user_login} because they went offline`);
         try {
           await songManager.play(room);
