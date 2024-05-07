@@ -24,6 +24,13 @@ router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags }
     return;
   }
 
+  const isPaused = await redisClient.get(`${room}:paused`);
+
+  if (isPaused) {
+    responder.respondWithMention("Cannot add song while paused");
+    return;
+  }
+
   const current = await redisClient.lrange(`${room}:playlist`, 0, -1);
 
   const list = current.map((item) => JSON.parse(item));
