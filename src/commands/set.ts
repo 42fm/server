@@ -190,6 +190,7 @@ async function subscribeToStream(id: string, room: string, token: string) {
       transport: {
         method: "webhook",
         callback: `${process.env.URL}/eventsub`,
+        secret: process.env.TWITCH_EVENTS_SECRET,
       },
     },
     {
@@ -217,6 +218,7 @@ async function subscribeToStream(id: string, room: string, token: string) {
       transport: {
         method: "webhook",
         callback: `${process.env.URL}/eventsub`,
+        secret: process.env.TWITCH_EVENTS_SECRET,
       },
     },
     {
