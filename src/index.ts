@@ -6,6 +6,7 @@ import connection from "@db/index.js";
 import { redisClient, sub } from "@db/redis.js";
 import { Responder } from "@lib/responder.js";
 import morganMiddleware from "@middleware/morganMiddleware.js";
+import eventsRouter from "@routes/events.js";
 import healthRouter from "@routes/health.js";
 import { logger } from "@utils/loggers.js";
 import { parseMessage } from "@utils/parser.js";
@@ -44,6 +45,7 @@ app.use(cookieParser());
 
 // Routes
 app.use(healthRouter);
+app.use(eventsRouter);
 
 client.on("message", async (channel, tags, message, self) => {
   // Ignore echoed messages and not valid commands

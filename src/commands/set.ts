@@ -1,5 +1,8 @@
 import { User } from "@db/entity/User.js";
+import { redisClient } from "@db/redis.js";
 import { Router } from "@lib/router.js";
+import { getAppAccessToken } from "@utils/appAccessToken.js";
+import axios from "axios";
 
 export const setRouter = new Router();
 
@@ -107,7 +110,7 @@ setRouter.register("maxDuration", async (ctx, args) => {
 
 setRouter.register("streamSync", async (ctx, args) => {
   if (args[0] === undefined) {
-    ctx.responder.respond("No length provided");
+    ctx.responder.respond("No value provided");
     return;
   }
 
@@ -132,9 +135,110 @@ setRouter.register("streamSync", async (ctx, args) => {
     return;
   }
 
-  user.settings.streamSync = bool;
+  const token = await getAppAccessToken();
 
-  await user.settings.save();
+  if (!token) {
+    ctx.responder.respond("Unable to get app access token");
+    return;
+  }
 
-  ctx.responder.respond(`Changed stream sync to ${bool}`);
+  if (bool) {
+    if (!user.settings.streamSync) {
+      await subscribeToStream(user.twitch_id, ctx.room, token);
+
+      user.settings.streamSync = true;
+
+      await user.settings.save();
+
+      ctx.responder.respond(`Changed stream sync to ${bool}`);
+    } else {
+      ctx.responder.respond("Already subscribed to stream");
+    }
+  } else {
+    if (user.settings.streamSync) {
+      const streamOnlineId = await redisClient.get(`${ctx.room}:stream-online`);
+      const streamOfflineId = await redisClient.get(`${ctx.room}:stream-offline`);
+
+      if (streamOnlineId) {
+        await deleteSubscription(streamOnlineId, token);
+      }
+
+      if (streamOfflineId) {
+        await deleteSubscription(streamOfflineId, token);
+      }
+
+      user.settings.streamSync = false;
+
+      await user.settings.save();
+
+      ctx.responder.respond(`Changed stream sync to ${bool}`);
+    } else {
+      ctx.responder.respond("Not subscribed to stream");
+    }
+  }
 });
+
+async function subscribeToStream(id: string, room: string, token: string) {
+  const responseStreamOnline = await axios.post(
+    "https://api.twitch.tv/helix/eventsub/subscriptions",
+    {
+      type: "stream.online",
+      version: "1",
+      condition: {
+        broadcaster_user_id: id,
+      },
+      transport: {
+        method: "webhook",
+        callback: `${process.env.URL}/eventsub`,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Client-ID": process.env.TWITCH_CLIENT_ID,
+      },
+    }
+  );
+
+  if (responseStreamOnline.status !== 202) {
+    throw new Error("Error while subscribing to stream.online");
+  }
+
+  await redisClient.set(`${room}:stream-online`, responseStreamOnline.data.data.id);
+
+  const responseStreamOffline = await axios.post(
+    "https://api.twitch.tv/helix/eventsub/subscriptions",
+    {
+      type: "stream.offline",
+      version: "1",
+      condition: {
+        broadcaster_user_id: id,
+      },
+      transport: {
+        method: "webhook",
+        callback: `${process.env.URL}/eventsub`,
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Client-ID": process.env.TWITCH_CLIENT_ID,
+      },
+    }
+  );
+
+  if (responseStreamOffline.status !== 202) {
+    throw new Error("Error while subscribing to stream.offline");
+  }
+
+  await redisClient.set(`${room}:stream-offline`, responseStreamOffline.data.data.id);
+}
+
+async function deleteSubscription(id: string, token: string) {
+  await axios.delete(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Client-ID": process.env.TWITCH_CLIENT_ID,
+    },
+  });
+}

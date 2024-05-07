@@ -1,28 +1,25 @@
+import { songManager } from "@constants/manager.js";
 import { client } from "@constants/tmi.js";
 import { Request, Router, raw } from "express";
 import crypto from "node:crypto";
-import { io } from "../index.js";
 import { logger } from "../utils/loggers.js";
 
-const router = Router();
+const eventsRouter = Router();
 
 const { TWITCH_EVENTS_SECRET } = process.env;
 
-// Notification request headers
 const TWITCH_MESSAGE_ID = "Twitch-Eventsub-Message-Id".toLowerCase();
 const TWITCH_MESSAGE_TIMESTAMP = "Twitch-Eventsub-Message-Timestamp".toLowerCase();
 const TWITCH_MESSAGE_SIGNATURE = "Twitch-Eventsub-Message-Signature".toLowerCase();
 const MESSAGE_TYPE = "Twitch-Eventsub-Message-Type".toLowerCase();
 
-// Notification message types
 const MESSAGE_TYPE_VERIFICATION = "webhook_callback_verification";
 const MESSAGE_TYPE_NOTIFICATION = "notification";
 const MESSAGE_TYPE_REVOCATION = "revocation";
 
-// Prepend this string to the HMAC that's created from the message
 const HMAC_PREFIX = "sha256=";
 
-router.post("/eventsub", raw({ type: "application/json" }), async (req, res) => {
+eventsRouter.post("/eventsub", raw({ type: "application/json" }), async (req, res) => {
   const secret = getSecret();
   const message = getHmacMessage(req);
   const hmac = HMAC_PREFIX + getHmac(secret, message); // Signature to compare
@@ -30,15 +27,27 @@ router.post("/eventsub", raw({ type: "application/json" }), async (req, res) => 
   if (true === verifyMessage(hmac, req.headers[TWITCH_MESSAGE_SIGNATURE] as string)) {
     console.log("signatures match");
 
-    // Get JSON object from body, so you can process the message.
     const notification = JSON.parse(req.body);
 
+    const room = notification.event.broadcaster_user_login.toLowerCase();
+
     if (MESSAGE_TYPE_NOTIFICATION === req.headers[MESSAGE_TYPE]) {
-      // TODO: Do something with the event's data.
       if (notification.subscription.type === "stream.online") {
         logger.info(`Pausing ${notification.event.broadcaster_user_login} because they went live`);
-        client.say(notification.event.broadcaster_user_login.toLowerCase(), "Pausing because streamer went live PogChamp");
-        io.in(notification.event.broadcaster_user_login.toLowerCase()).emit("pause");
+        try {
+          await songManager.pause(room);
+          client.say(room, "Pausing because streamer went live PogChamp");
+        } catch (err) {
+          logger.error(err);
+        }
+      } else if (notification.subscription.type === "stream.offline") {
+        logger.info(`Resuming ${notification.event.broadcaster_user_login} because they went offline`);
+        try {
+          await songManager.play(room);
+          client.say(room, "Resuming because streamer went offline PogChamp");
+        } catch (err) {
+          logger.error(err);
+        }
       }
 
       console.log(`Event type: ${notification.subscription.type}`);
@@ -67,19 +76,31 @@ function getSecret() {
   return TWITCH_EVENTS_SECRET!;
 }
 
-// Build the message used to get the HMAC.
 function getHmacMessage(request: Request) {
   return (request.headers[TWITCH_MESSAGE_ID] as string) + request.headers[TWITCH_MESSAGE_TIMESTAMP] + request.body;
 }
 
-// Get the HMAC.
 function getHmac(secret: string, message: string) {
   return crypto.createHmac("sha256", secret).update(message).digest("hex");
 }
 
-// Verify whether our hash matches the hash that Twitch passed in the header.
 function verifyMessage(hmac: string, verifySignature: string) {
   return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(verifySignature));
 }
 
-export default router;
+export default eventsRouter;
+
+interface StreamOnlineEvent {
+  id: string;
+  broadcaster_user_id: string;
+  broadcaster_user_login: string;
+  broadcaster_user_name: string;
+  type: string;
+  started_at: string;
+}
+
+interface StreamOfflineEvent {
+  broadcaster_user_id: string;
+  broadcaster_user_login: string;
+  broadcaster_user_name: string;
+}
