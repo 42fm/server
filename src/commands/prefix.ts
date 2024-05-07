@@ -146,69 +146,32 @@ prefixRouter.register("skip", isOwnerBroadcasterMod, async (ctx) => {
 });
 
 prefixRouter.register("play", isOwnerBroadcasterMod, async (ctx) => {
-  redisClient
-    .multi()
-    .get(`${ctx.room}:current`)
-    .get(`${ctx.room}:timeRemaining`)
-    .exec((err, replies) => {
-      const [currentError, current] = replies![0] as [Error, CurrentSong];
-      const [timeRemainingError, timeRemaining] = replies![1] as [Error, number];
-
-      if (currentError || timeRemainingError) {
-        ctx.responder.respond("Error while playing");
-        return;
-      }
-
-      if (current === null) {
-        ctx.responder.respond("Nothing to play");
-        return;
-      }
-
-      logger.info("Time remaining", { timeRemaining });
-
-      redisClient
-        .expire(`${ctx.room}:current`, timeRemaining)
-        .then(() => {
-          io.in(ctx.room).emit("play");
-          ctx.responder.respond("Song playing");
-        })
-        .catch((err) => logger.error(err));
-    });
+  try {
+    await songManager.play(ctx.room);
+    ctx.responder.respondWithMention("Playing");
+  } catch (err) {
+    if (err instanceof SongManagerError) {
+      ctx.responder.respondWithMention(err.message);
+    } else {
+      logger.error(err);
+      ctx.responder.respondWithMention("Error while playing");
+    }
+  }
 });
 
 prefixRouter.register("pause", isOwnerBroadcasterMod, async (ctx) => {
-  redisClient
-    .multi()
-    .ttl(`${ctx.room}:current`)
-    .persist(`${ctx.room}:current`)
-    .exec((err, replies) => {
-      const [ttlError, ttl] = replies![0] as [Error, number];
-      const [currentError, current] = replies![1] as [Error, CurrentSong];
-
-      if (ttlError || currentError) {
-        ctx.responder.respond("Error while pausing");
-        return;
+  songManager
+    .pause(ctx.room)
+    .then(() => {
+      ctx.responder.respondWithMention("Paused");
+    })
+    .catch((err) => {
+      if (err instanceof SongManagerError) {
+        ctx.responder.respondWithMention(err.message);
+      } else {
+        logger.error(err);
+        ctx.responder.respondWithMention("error while pausing");
       }
-
-      if (ttl === -2) {
-        ctx.responder.respond("Nothing to pause");
-        return;
-      }
-
-      if (ttl === -1) {
-        ctx.responder.respond("Song already paused");
-        return;
-      }
-
-      logger.info(`${ctx.room}:current`, { ttl, current });
-
-      redisClient
-        .set(`${ctx.room}:timeRemaining`, ttl)
-        .then(() => {
-          io.in(ctx.room).emit("pause");
-          ctx.responder.respond("Song paused");
-        })
-        .catch((err) => logger.error(err));
     });
 });
 

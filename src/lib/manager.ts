@@ -177,4 +177,41 @@ export class SongManager {
         }
       });
   }
+
+  async pause(room: string) {
+    const ttl = await redisClient.ttl(`${room}:current`);
+    await redisClient.persist(`${room}:current`);
+
+    if (ttl === -2) {
+      throw new SongManagerError("Nothing to pause");
+    }
+
+    if (ttl === -1) {
+      throw new SongManagerError("Song already paused");
+    }
+
+    await redisClient.set(`${room}:timeRemaining`, ttl);
+    await redisClient.set(`${room}:paused`, "true");
+
+    io.in(room).emit("pause");
+  }
+
+  async play(room: string) {
+    const current = await redisClient.get(`${room}:current`);
+    const timeRemaining = await redisClient.getdel(`${room}:timeRemaining`);
+
+    logger.info("current", { current, timeRemaining });
+
+    if (current === null) {
+      throw new SongManagerError("Nothing to play");
+    }
+
+    if (timeRemaining === null) {
+      throw new SongManagerError("Song already playing");
+    }
+
+    await redisClient.expire(`${room}:current`, timeRemaining);
+    await redisClient.del(`${room}:paused`);
+    io.in(room).emit("play");
+  }
 }
