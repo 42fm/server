@@ -86,6 +86,13 @@ prefixRouter.register("song", async ({ responder, room }) => {
 });
 
 prefixRouter.register("wrong", async ({ responder, room, tags }) => {
+  const isPaused = await redisClient.get(`${room}:paused`);
+
+  if (isPaused) {
+    responder.respondWithMention("Cannot delete wrong song while paused");
+    return;
+  }
+
   const current = await redisClient.lrange(`${room}:playlist`, 0, -1);
   const list = current.map((item) => JSON.parse(item));
 
@@ -184,6 +191,13 @@ prefixRouter.register("search", (ctx) => {
 });
 
 prefixRouter.register("voteskip", async (ctx) => {
+  const isPaused = await redisClient.get(`${ctx.room}:paused`);
+
+  if (isPaused) {
+    ctx.responder.respondWithMention("Cannot voteskip while paused");
+    return;
+  }
+
   await redisClient.sadd(`${ctx.room}:votes`, ctx.tags["username"]!);
 
   let current;
