@@ -80,6 +80,13 @@ router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags }
     }
   }
 
+  const duplicate = list.find((song) => song.yt_id == id);
+
+  if (duplicate) {
+    responder.respondWithMention("song already added");
+    return;
+  }
+
   try {
     await songManager.add({
       id,
