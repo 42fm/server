@@ -33,7 +33,7 @@ router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags }
 
   const current = await redisClient.lrange(`${room}:playlist`, 0, -1);
 
-  const list = current.map((item) => JSON.parse(item));
+  const list = current.map((item) => JSON.parse(item)) as Song[];
 
   const totalDuration = list.reduce((acc, item) => acc + item.duration, 0);
 
