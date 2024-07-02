@@ -4,6 +4,7 @@ import { Ban } from "@db/entity/Ban.js";
 import { redisClient } from "@db/redis.js";
 import { SongManagerError } from "@lib/manager.js";
 import { Router } from "@lib/router.js";
+import { checkIsPaused } from "@middleware/checkIsPaused.js";
 import { isOwner, isOwnerBroadcasterMod, isOwnerOrOwnerRoom } from "@middleware/tags.js";
 import { GetUserError, HelixUser, getUser } from "@utils/getUser.js";
 import { logger } from "@utils/loggers.js";
@@ -42,7 +43,7 @@ prefixRouter.register("count", isOwner, (ctx) => {
   ctx.responder.respond(`Connected channels: ${count}`);
 });
 
-prefixRouter.register("random", isOwner, ({ room, tags }) => {
+prefixRouter.register("random", isOwner, checkIsPaused, ({ room, tags }) => {
   const song = songs[Math.floor(Math.random() * songs.length)];
 
   const id = ytdl.getURLVideoID(song);
@@ -68,7 +69,7 @@ prefixRouter.register("help", (ctx) => {
   ctx.responder.respondWithMention(`available commands: !fm <link/id/title>, !fm song, !fm wrong, !fm voteskip`);
 });
 
-prefixRouter.register("song", async ({ responder, room }) => {
+prefixRouter.register("song", checkIsPaused, async ({ responder, room }) => {
   try {
     const res = await redisClient.get(`${room}:current`);
 
@@ -118,7 +119,6 @@ prefixRouter.register("wrong", async ({ responder, room, tags }) => {
   redisClient.lrem(`${room}:playlist`, -1, JSON.stringify(found));
 
   responder.respondWithMention(`removed your last song`);
-  return;
 });
 
 prefixRouter.register("clear", isOwnerBroadcasterMod, async (ctx) => {
@@ -190,14 +190,7 @@ prefixRouter.register("search", (ctx) => {
   ctx.responder.respondWithMention("use !fm <link/title/id> to add a song");
 });
 
-prefixRouter.register("voteskip", async (ctx) => {
-  const isPaused = await redisClient.get(`${ctx.room}:paused`);
-
-  if (isPaused) {
-    ctx.responder.respondWithMention("Cannot voteskip while paused");
-    return;
-  }
-
+prefixRouter.register("voteskip", checkIsPaused, async (ctx) => {
   await redisClient.sadd(`${ctx.room}:votes`, ctx.tags["username"]!);
 
   let current;
