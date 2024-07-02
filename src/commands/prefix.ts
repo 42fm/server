@@ -69,7 +69,7 @@ prefixRouter.register("help", (ctx) => {
   ctx.responder.respondWithMention(`available commands: !fm <link/id/title>, !fm song, !fm wrong, !fm voteskip`);
 });
 
-prefixRouter.register("song", checkIsPaused, async ({ responder, room }) => {
+prefixRouter.register("song", async ({ responder, room }) => {
   try {
     const res = await redisClient.get(`${room}:current`);
 
