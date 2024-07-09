@@ -138,7 +138,7 @@ prefixRouter.register("disconnect", isOwnerBroadcasterMod, async (ctx) => {
   client.part(ctx.room);
 });
 
-prefixRouter.register("skip", isOwnerBroadcasterMod, async (ctx) => {
+prefixRouter.register("skip", isOwnerBroadcasterMod, checkIsPaused, async (ctx) => {
   try {
     await songManager.skip(ctx.room);
     ctx.responder.respondWithMention("skipping...");
