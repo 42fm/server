@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { readFileSync } from "fs";
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { Ban } from "./entity/Ban.js";
@@ -31,6 +32,9 @@ const connection = new DataSource({
   logging: DEBUG_POSTGRES === "true",
   synchronize: false,
   poolSize: 5,
+  ssl:{
+    ca: readFileSync("/etc/secrets/ca.pem").toString()
+  },
 });
 
 export default connection;
