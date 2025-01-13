@@ -16,7 +16,7 @@ const { DB_HOST, DB_USERNAME, DEBUG_POSTGRES, DB_PASSWORD, DB_NAME, DB_PORT } = 
 const connection = new DataSource({
   type: "postgres",
   host: DB_HOST,
-  port: DB_PORT,
+  port: Number(DB_PORT),
   username: DB_USERNAME,
   password: DB_PASSWORD,
   database: DB_NAME,
