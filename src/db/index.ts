@@ -11,12 +11,12 @@ import { InsertSettingsForUsers1713994509519 } from "./migrations/1713994509519-
 import { AddUniqueConstraintToTwitchId1713998180497 } from "./migrations/1713998180497-AddUniqueConstraintToTwitchId.js";
 import { AddBanSchema1714768431257 } from "./migrations/1714768431257-AddBanSchema.js";
 
-const { DB_HOST, DB_USERNAME, DEBUG_POSTGRES, DB_PASSWORD, DB_NAME } = process.env;
+const { DB_HOST, DB_USERNAME, DEBUG_POSTGRES, DB_PASSWORD, DB_NAME, DB_PORT } = process.env;
 
 const connection = new DataSource({
   type: "postgres",
   host: DB_HOST,
-  port: 5432,
+  port: DB_PORT,
   username: DB_USERNAME,
   password: DB_PASSWORD,
   database: DB_NAME,
