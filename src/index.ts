@@ -150,8 +150,6 @@ async function main() {
 
     childLogger.info("New socket connection");
 
-    logger.info("New connection", { id: socket.id, ip: socket.handshake.address });
-
     socket.on("error", (err) => {
       childLogger.info("socket error", err);
     });
