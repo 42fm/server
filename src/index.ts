@@ -59,7 +59,7 @@ client.on("message", async (channel, tags, message, self) => {
 
   const responder = new Responder(client, tags, room, queue);
 
-  logger.info("Command sent", { username: tags["username"], channel, command, args });
+  logger.info("Recieved command", { username: tags["username"], channel, command, args });
 
   router.route({ responder, room, tags }, [prefix.toLowerCase(), command, ...args], 0);
 });
@@ -116,9 +116,8 @@ async function connectToChannels() {
       }
     }
     logger.debug("Connected to channels from database");
-  } catch (e) {
-    logger.info("Error while connecting to channels");
-    logger.error(e);
+  } catch (error) {
+    logger.error("Error while connecting to channels", { error });
   }
 }
 
@@ -140,10 +139,19 @@ async function main() {
   }
 
   io.on("connection", (socket) => {
+    const childLogger = logger.child({
+      service: "ws",
+      socketId: socket.id,
+      ip: socket.handshake.headers["x-forwarded-for"],
+      temp: socket.handshake.headers,
+    });
+
+    childLogger.info("New socket connection");
+
     logger.info("New connection", { id: socket.id, ip: socket.handshake.address });
 
     socket.on("error", (err) => {
-      logger.info("socket error", err);
+      childLogger.info("socket error", err);
     });
 
     socket.on("joinRoom", async (data) => {
@@ -152,13 +160,13 @@ async function main() {
       const user = await User.findOne({ where: { username: room } });
 
       if (!user) {
-        logger.info("42fm not enabled on channel", { channel: room });
+        childLogger.info("Not enabled on channel", { room });
         socket.emit("no42fm");
         socket.disconnect();
         return;
       }
 
-      logger.info("Socket joined room", { socket: socket.id, room: room });
+      childLogger.info("Joined room", { room });
       await socket.join(room);
 
       const sockets = await io.in(room).fetchSockets();
@@ -189,7 +197,7 @@ async function main() {
             isPlaying,
           };
 
-          logger.info(`${JSON.stringify(currentWithTTL)}`);
+          childLogger.debug(`${JSON.stringify(currentWithTTL)}`);
 
           if (current && playlist) {
             const list = playlist.map((item: string) => JSON.parse(item));
@@ -201,52 +209,56 @@ async function main() {
     socket.on("sync", (data) => {
       const room = data.room.toLowerCase();
 
-      logger.info("Sync event", { room });
+      childLogger.info("Sync event", { room });
+
       redisClient
         .ttl(`${room}:current`)
         .then((ttl) => {
           if (ttl > 0) {
-            logger.debug(ttl);
+            childLogger.debug(ttl);
             socket.emit("songSync", ttl);
           }
         })
-        .catch((err) => logger.error(err));
+        .catch((err) => childLogger.error(err));
     });
 
     socket.on("disconnecting", async () => {
-      for (const room of Array.from(socket.rooms).slice(1)) {
+      const rooms = new Set(socket.rooms);
+      for (const room of Array.from(rooms).slice(1)) {
         const sockets = await io.in(room).fetchSockets();
         io.in(room).emit("userCount", sockets.length - 1);
-        logger.info(room, sockets.length);
+        childLogger.info("disconnecting", { room, socketsCount: sockets.length });
       }
     });
   });
 }
 
 (async function () {
+  logger.info("Initializing database connection...");
   await connection.initialize();
-  logger.info("Initialized connection to database");
 
+  logger.info("Running migrations...");
   await connection.runMigrations();
-  logger.info("Ran migrations");
 
+  logger.info("Starting server...");
   main();
 
   httpServer.listen(PORT, () => {
-    logger.info(`🚀 Server started on port ${PORT}`);
+    logger.info(`Server started on port ${PORT}`);
   });
 })();
 
-process.on("SIGTERM", async () => {
-  logger.info("Shutting down");
+process.on("SIGTERM", async (signal) => {
+  logger.info(`Received ${signal}. Starting graceful shutdown...`);
   io.close(async () => {
-    logger.info("IO server closed");
+    logger.info("Http server closed...");
     await connection.destroy();
-    logger.info("Database connection closed");
+    logger.info("PostgreSQL connection closed...");
     await redisClient.quit();
-    logger.info("Redis connection closed");
+    logger.info("Redis connection closed...");
     await sub.quit();
-    logger.info("Redis Sub connection closed");
+    logger.info("Redis Sub connection closed...");
+    logger.info("Exiting...");
     process.exit(0);
   });
 });
