@@ -33,6 +33,8 @@ const options: Partial<ServerOptions> = {
 
 export const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, options);
 
+app.set("trust proxy", 1);
+
 // Middleware
 app.use(
   cors({
@@ -142,8 +144,8 @@ async function main() {
     const childLogger = logger.child({
       service: "ws",
       socketId: socket.id,
-      ip: socket.handshake.headers["x-forwarded-for"],
-      temp: socket.handshake.headers,
+      ip: (socket.handshake.headers["x-forwarded-for"] as string | undefined)?.split(",")[0],
+      remoteAdress: socket.request.socket.remoteAddress,
     });
 
     childLogger.info("New socket connection");
