@@ -19,7 +19,7 @@ router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags }
 
   let id: string;
 
-  if (!input || args.length === 0 || input.length < 2) {
+  if (!input || args.length === 0 || args.join("").length <= 3) {
     responder.respondWithMention("Use !fm <link/query/id> to add a song");
     return;
   }
