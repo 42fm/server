@@ -237,18 +237,16 @@ async function main() {
   });
 })();
 
-process.on("SIGTERM", () => {
-  httpServer.close(() => {
-    logger.info("Http server closed");
-    io.close(async () => {
-      logger.info("IO server closed");
-      await connection.destroy();
-      logger.info("Database connection closed");
-      await redisClient.quit();
-      logger.info("Redis connection closed");
-      await sub.quit();
-      logger.info("Redis Sub connection closed");
-      process.exit(0);
-    });
+process.on("SIGTERM", async () => {
+  logger.info("Shutting down");
+  io.close(async () => {
+    logger.info("IO server closed");
+    await connection.destroy();
+    logger.info("Database connection closed");
+    await redisClient.quit();
+    logger.info("Redis connection closed");
+    await sub.quit();
+    logger.info("Redis Sub connection closed");
+    process.exit(0);
   });
 });
