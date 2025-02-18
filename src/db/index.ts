@@ -1,7 +1,8 @@
 import "dotenv/config";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import "reflect-metadata";
 import { DataSource } from "typeorm";
+import { PostgresConnectionCredentialsOptions } from "typeorm/driver/postgres/PostgresConnectionCredentialsOptions.js";
 import { Ban } from "./entity/Ban.js";
 import { Channel } from "./entity/Channel.js";
 import { Settings } from "./entity/Settings.js";
@@ -13,6 +14,14 @@ import { AddUniqueConstraintToTwitchId1713998180497 } from "./migrations/1713998
 import { AddBanSchema1714768431257 } from "./migrations/1714768431257-AddBanSchema.js";
 
 const { DB_HOST, DB_USERNAME, DEBUG_POSTGRES, DB_PASSWORD, DB_NAME, DB_PORT } = process.env;
+
+const getCert = (): PostgresConnectionCredentialsOptions => {
+  return {
+    ssl: {
+      ca: readFileSync("/etc/secrets/ca.pem").toString(),
+    },
+  };
+};
 
 const connection = new DataSource({
   type: "postgres",
@@ -32,9 +41,7 @@ const connection = new DataSource({
   logging: DEBUG_POSTGRES === "true",
   synchronize: false,
   poolSize: 5,
-  ssl:{
-    ca: readFileSync("/etc/secrets/ca.pem").toString()
-  },
+  ...(existsSync("/etc/secrets/ca.pem") ? getCert() : {}),
 });
 
 export default connection;
