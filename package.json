@@ -6,8 +6,8 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "node --import @bleed-believer/path-alias --env-file=.env --loader=ts-node/esm --watch src/index.ts",
-    "dev:docker": "node --import @bleed-believer/path-alias --loader=ts-node/esm --watch src/index.ts",
+    "dev": "node --import @bleed-believer/path-alias --env-file=.env --loader=ts-node --watch src/index.ts",
+    "dev:docker": "node --import @bleed-believer/path-alias --loader=ts-node --watch src/index.ts",
     "start": "node ./dist/index.js",
     "build": "rm -rf dist/ && tsc -p . && tsc-alias",
     "lint": "eslint src/",
