@@ -6,3 +6,12 @@ types/*
 combined.log
 error.log
 /dist
+
+# yarn (zero install ignores, even though we don't use it, it allows for faster installs)
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
