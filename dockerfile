@@ -4,8 +4,11 @@ WORKDIR /app
 
 COPY package.json .
 COPY yarn.lock .
+COPY .yarnrc.yml .
 
-RUN yarn install
+RUN corepack enable
+RUN yarn set version berry
+RUN yarn install --immutable
 
 COPY . .
 
