@@ -22,58 +22,9 @@ export class SongManager {
    * Adds a song with the given id to a specific room
    */
   async add({ id, room, tags }: { id: string; room: string; tags: ChatUserstate }) {
-    const videoResponse = await youtubeApi.videos.list({
-      part: ["contentDetails", "status", "snippet", "statistics"],
-      id: [id],
-      key: process.env.GOOGLE_API_KEY,
-    });
+    const { views, duration, title, channelName, thumbnail } = await getVideoInfo(id);
 
-    const item = videoResponse.data.items![0];
-
-    const channelResponse = await youtubeApi.channels.list({
-      part: ["snippet"],
-      id: [item.snippet!.channelId!],
-      key: process.env.GOOGLE_API_KEY!,
-    });
-
-    const isEmbeddable = item.status!.embeddable;
-    const isAgeRestricted = item.contentDetails!.contentRating!.ytRating === "ytAgeRestricted";
-    const isNotVideo = item.snippet!.liveBroadcastContent !== "none";
-
-    const title = item.snippet!.title!;
-    const channelName = item.snippet!.channelTitle!;
-    const views = Number(item.statistics!.viewCount);
-    const duration = toSeconds(parse(item.contentDetails!.duration!));
-
-    if (!isEmbeddable) {
-      throw new SongManagerError("video has embedds disabled");
-    }
-
-    if (isAgeRestricted) {
-      throw new SongManagerError("video is age restricted");
-    }
-
-    if (isNotVideo) {
-      throw new SongManagerError("livestreams and upcoming videos are not supported");
-    }
-
-    const user = await User.findOne({
-      select: {
-        settings: {
-          maxDuration: true,
-          minDuration: true,
-          minViews: true,
-        },
-      },
-      where: { username: room },
-      relations: {
-        settings: true,
-      },
-    });
-
-    if (!user) {
-      throw new SongManagerError("user not found");
-    }
+    const user = await getUser(room);
 
     const { isBroadcaster, isMod, isOwner } = parseTags(tags);
 
@@ -94,7 +45,7 @@ export class SongManager {
       title,
       artist: channelName,
       url: "https://youtube.com/" + id,
-      imgUrl: channelResponse.data.items![0].snippet!.thumbnails!.default!.url!,
+      imgUrl: thumbnail,
       duration,
       username: tags["username"]!,
     };
