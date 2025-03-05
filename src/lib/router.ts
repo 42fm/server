@@ -10,29 +10,29 @@ export interface Context {
 export type Args = string[];
 export type Next = () => void;
 
-type RouteMiddleware = (ctx: Context, args: string[], next: Next) => Promise<void> | void;
+type RouteMiddleware<T> = (ctx: T, args: string[], next: Next) => Promise<void> | void;
 
-interface Route {
-  middlewares: RouteMiddleware[];
-  cb: RouteMiddleware;
-  router?: Router;
+interface Route<T> {
+  middlewares: RouteMiddleware<T>[];
+  cb: RouteMiddleware<T>;
+  router?: Router<T>;
 }
 
-export class Router<K extends string = string> {
-  routes: Map<K, Route>;
+export class Router<T = Context, K extends string = string> {
+  routes: Map<K, Route<T>>;
 
   constructor() {
     this.routes = new Map();
   }
 
-  register(name: K, ...functions: RouteMiddleware[]) {
+  register(name: K, ...functions: RouteMiddleware<T>[]) {
     this.routes.set(name, {
       middlewares: functions.length > 0 ? functions.slice(0, functions.length - 1) : [],
       cb: functions[functions.length - 1],
     });
   }
 
-  registerNextRouter(name: K, nextRouter: Router) {
+  registerNextRouter(name: K, nextRouter: Router<T>) {
     const router = this.routes.get(name);
 
     if (!router) {
@@ -42,7 +42,7 @@ export class Router<K extends string = string> {
     router.router = nextRouter;
   }
 
-  async route(ctx: Context, segments: K[], idx: number): Promise<void> {
+  async route(ctx: T, segments: K[], idx: number): Promise<void> {
     if (!this.routes.has(segments[idx])) return;
 
     const route = this.routes.get(segments[idx]);
