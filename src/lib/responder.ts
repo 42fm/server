@@ -1,4 +1,4 @@
-import type { ChatUserstate } from "tmi.js";
+import type { ChatUserstate, Client } from "tmi.js";
 import type { Queue } from "./queue.js";
 
 export class Responder {

@@ -1,6 +1,6 @@
 import { youtubeApi } from "@constants/youtube.js";
 import { User } from "@db/entity/User.js";
-import { SongManagerError } from "@lib/managerNew.js";
+import { SongManagerError } from "@lib/manager.js";
 import { parse, toSeconds } from "iso8601-duration";
 
 export async function getUser(room: string) {

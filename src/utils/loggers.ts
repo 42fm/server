@@ -18,7 +18,8 @@ const devFormat = combine(
   )
 );
 
-function isEmpty(obj: object) {
+function isEmpty(obj: object | unknown) {
+  if (typeof obj !== "object" || obj == null) return true;
   return Object.keys(obj).length === 0;
 }
 

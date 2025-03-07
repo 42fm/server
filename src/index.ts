@@ -17,7 +17,7 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import "reflect-metadata";
-import type { Server, ServerOptions } from "socket.io"
+import { Server, type ServerOptions } from "socket.io"
 
 const { PORT, URL, COMMAND_PREFIX, NODE_ENV, RENDER_GIT_COMMIT, TWITCH_USERNAME } = process.env;
 

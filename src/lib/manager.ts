@@ -2,6 +2,7 @@ import { youtubeApi } from "@constants/youtube.js";
 import { User } from "@db/entity/User.js";
 import { redisClient } from "@db/redis.js";
 import { logger } from "@utils/loggers.js";
+import { getUser, getVideoInfo } from "@utils/manager.js";
 import { parseTags } from "@utils/tagsParser.js";
 import { parse, toSeconds } from "iso8601-duration";
 import type { ChatUserstate } from "tmi.js";
