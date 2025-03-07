@@ -15,6 +15,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
+    "test": "yarn common --test test/**/*.test.ts",
+    "test:dev": "yarn common --test test/**/*.test.ts",
     "migration:generate": "yarn build && typeorm-ts-node-esm migration:generate --pretty -d src/db/index.ts",
     "migration:create": "yarn build && typeorm-ts-node-esm migration:create",
     "migration:run": "yarn build && typeorm-ts-node-esm migration:run -d src/db/index.ts",
