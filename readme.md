@@ -2,19 +2,36 @@
     <img src="logo.png">
 </p>
 
-# Introduction
+<p align="center" >
+    <a href="https://github.com/42fm/server/actions">
+        <img src="https://github.com/42fm/server/workflows/CI/badge.svg">
+    </a>
+</p>
 
-This repository contains the server for the 42fm server
+## Overview
 
-## Table of contents
+This repository contains the backend server for the [42FM browser extension](https://github.com/42fm/42fm). It manages real-time synchronization of music playback across multiple extension users.
 
-- [Installation](#installation)
+## Development Setup with docker compose
 
-## Installation
+1. Clone repo
 
-```
-git clone https://github.com/42fm/server.git --recursive
-cd server
-yarn install
-docker compose up
-```
+   ```sh
+   git clone https://github.com/42fm/server.git --recursive
+   ```
+
+1. Navigate to the project directory
+
+   ```sh
+   cd server
+   ```
+
+1. Build and start the containers
+
+   ```sh
+   docker compose up --rebuild
+   ```
+
+## Related Projects
+
+- [42FM Browser Extension](https://github.com/42fm/42fm) - The client-side browser extension
