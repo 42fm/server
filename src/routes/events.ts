@@ -1,6 +1,6 @@
 import { songManager } from "@constants/manager.js";
 import { client } from "@constants/tmi.js";
-import { Request, Router, raw } from "express";
+import { type Request, Router, raw } from "express";
 import crypto from "node:crypto";
 import { logger } from "../utils/loggers.js";
 

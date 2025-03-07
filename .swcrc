@@ -1,0 +1,21 @@
+{
+  "$schema": "https://swc.rs/schema.json",
+  "jsc": {
+    "target": "esnext",
+    "parser": {
+      "decorators": true,
+      "syntax": "typescript"
+    },
+    "baseUrl": ".",
+    "paths": {
+      "@commands/*": ["./src/commands/*"],
+      "@constants/*": ["./src/constants/*"],
+      "@db/*": ["./src/db/*"],
+      "@lib/*": ["./src/lib/*"],
+      "@middleware/*": ["./src/middleware/*"],
+      "@routes/*": ["./src/routes/*"],
+      "@utils/*": ["./src/utils/*"]
+    }
+  },
+  "sourceMaps": true
+}

@@ -6,7 +6,7 @@ import { SongManagerError } from "@lib/manager.js";
 import { Router } from "@lib/router.js";
 import { checkIsPaused } from "@middleware/checkIsPaused.js";
 import { isOwner, isOwnerBroadcasterMod, isOwnerOrOwnerRoom } from "@middleware/tags.js";
-import { GetUserError, HelixUser, getUser } from "@utils/getUser.js";
+import { GetUserError, type HelixUser, getUser } from "@utils/getUser.js";
 import { logger } from "@utils/loggers.js";
 import { QueryFailedError } from "typeorm";
 import ytdl from "ytdl-core";

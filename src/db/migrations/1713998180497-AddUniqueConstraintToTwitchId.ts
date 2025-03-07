@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class AddUniqueConstraintToTwitchId1713998180497 implements MigrationInterface {
   name = "AddUniqueConstraintToTwitchId1713998180497";

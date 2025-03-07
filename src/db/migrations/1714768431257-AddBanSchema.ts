@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class AddBanSchema1714768431257 implements MigrationInterface {
   name = "AddBanSchema1714768431257";

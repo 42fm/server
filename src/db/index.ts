@@ -2,7 +2,7 @@ import "dotenv/config";
 import { existsSync, readFileSync } from "fs";
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { PostgresConnectionCredentialsOptions } from "typeorm/driver/postgres/PostgresConnectionCredentialsOptions.js";
+import type { PostgresConnectionCredentialsOptions } from "typeorm/driver/postgres/PostgresConnectionCredentialsOptions.js";
 import { Ban } from "./entity/Ban.js";
 import { Channel } from "./entity/Channel.js";
 import { Settings } from "./entity/Settings.js";

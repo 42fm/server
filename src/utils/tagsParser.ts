@@ -1,4 +1,4 @@
-import { ChatUserstate } from "tmi.js";
+import type { ChatUserstate } from "tmi.js";
 
 const { FM_OWNER_ID } = process.env;
 

@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class InsertSettingsForUsers1713994509519 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {

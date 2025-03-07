@@ -4,7 +4,7 @@ import { redisClient } from "@db/redis.js";
 import { logger } from "@utils/loggers.js";
 import { parseTags } from "@utils/tagsParser.js";
 import { parse, toSeconds } from "iso8601-duration";
-import { ChatUserstate } from "tmi.js";
+import type { ChatUserstate } from "tmi.js";
 import { io } from "../index.js";
 
 /**

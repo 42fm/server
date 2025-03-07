@@ -1,5 +1,5 @@
 import { redisClient } from "@db/redis.js";
-import axios, { AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { logger } from "./loggers.js";
 
 interface TwitchAppAccessTokenResponse {
