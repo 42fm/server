@@ -42,14 +42,10 @@ export class Router<T = Context, K extends string = string> {
     router.router = nextRouter;
   }
 
-  async route(ctx: T, segments: K[], idx: number): Promise<void> {
+  async route(ctx: T, segments: K[], idx: number = 0): Promise<void> {
     if (!this.routes.has(segments[idx])) return;
 
-    const route = this.routes.get(segments[idx]);
-
-    if (!route) {
-      throw new Error("Route not found");
-    }
+    const route = this.routes.get(segments[idx])!;
 
     const { middlewares, cb, router } = route;
 
@@ -64,7 +60,7 @@ export class Router<T = Context, K extends string = string> {
       router.route(ctx, segments, idx + 1);
     } else {
       cb(ctx, segments.slice(idx + 1, segments.length), () => {
-        throw new Error("Route not found");
+        throw new Error("Can't invoke next in the final segment");
       });
     }
   }
