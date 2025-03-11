@@ -1,6 +1,6 @@
 import { createLogger, format, transports } from "winston";
 
-const { combine, align, metadata, colorize, timestamp, prettyPrint, errors, splat, printf, json } = format;
+const { combine, align, metadata, colorize, timestamp, prettyPrint, errors, splat, printf, simple } = format;
 
 const devFormat = combine(
   align(),
@@ -23,7 +23,7 @@ function isEmpty(obj: object | unknown) {
   return Object.keys(obj).length === 0;
 }
 
-const prodFormat = combine(errors({ stack: true }), timestamp(), json());
+const prodFormat = combine(errors({ stack: true }), timestamp(), simple());
 
 const { LOG_LEVEL, NODE_ENV } = process.env;
 
