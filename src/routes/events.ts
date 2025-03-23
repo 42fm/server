@@ -89,18 +89,3 @@ function verifyMessage(hmac: string, verifySignature: string) {
 }
 
 export default eventsRouter;
-
-interface StreamOnlineEvent {
-  id: string;
-  broadcaster_user_id: string;
-  broadcaster_user_login: string;
-  broadcaster_user_name: string;
-  type: string;
-  started_at: string;
-}
-
-interface StreamOfflineEvent {
-  broadcaster_user_id: string;
-  broadcaster_user_login: string;
-  broadcaster_user_name: string;
-}
