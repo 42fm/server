@@ -1,21 +1,17 @@
+import { setRouter } from "@bot/routes/set.js";
 import { client } from "@constants/tmi.js";
 import { Ban } from "@db/entity/Ban.js";
 import { redisClient } from "@db/redis.js";
 import { SongManagerError } from "@lib/manager.js";
-import { Router } from "@lib/router.js";
-import { checkIsPaused } from "@middleware/checkIsPaused.js";
-import { isOwner, isOwnerBroadcasterMod, isOwnerOrOwnerRoom } from "@middleware/tags.js";
-import { GetUserError, type HelixUser, getUser } from "@utils/getUser.js";
+import type { Context } from "@lib/router.js";
+import { app } from "@root/index.js";
+import { songs } from "@root/songs.js";
+import { getUser, GetUserError, type HelixUser } from "@utils/getUser.js";
 import { logger } from "@utils/loggers.js";
-import { app } from "src/index.js";
 import { QueryFailedError } from "typeorm";
 import ytdl from "ytdl-core";
-import { songs } from "../songs.js";
-import { setRouter } from "./set.js";
 
-export const prefixRouter = new Router();
-
-prefixRouter.register("uptime", isOwner, (ctx) => {
+export function handleUptime(ctx: Context) {
   let ut_sec = process.uptime();
   let ut_min = ut_sec / 60;
   let ut_hour = ut_min / 60;
@@ -29,20 +25,20 @@ prefixRouter.register("uptime", isOwner, (ctx) => {
   ut_sec = ut_sec % 60;
 
   ctx.responder.respond(`Uptime: ${ut_hour}h ${ut_min}m ${ut_sec}s MrDestructoid`);
-});
+}
 
-prefixRouter.register("channels", isOwner, (ctx) => {
+export function handleChannels(ctx: Context) {
   const channels = client.getChannels().map((channel) => channel.slice(1));
   ctx.responder.respond(`Connected channels: ${channels.join(", ")}`);
-});
+}
 
-prefixRouter.register("count", isOwner, (ctx) => {
+export function handleCount(ctx: Context) {
   const count = client.getChannels().length;
 
   ctx.responder.respond(`Connected channels: ${count}`);
-});
+}
 
-prefixRouter.register("random", isOwner, checkIsPaused, ({ room, tags, manager }) => {
+export function handleRandom({ room, tags, manager }: Context) {
   const song = songs[Math.floor(Math.random() * songs.length)];
 
   const id = ytdl.getURLVideoID(song);
@@ -56,9 +52,9 @@ prefixRouter.register("random", isOwner, checkIsPaused, ({ room, tags, manager }
   } catch (err) {
     logger.error(err);
   }
-});
+}
 
-prefixRouter.register("timer", isOwner, checkIsPaused, async ({ room, tags, manager }) => {
+export async function handleTimer({ room, tags, manager }: Context) {
   const id = "bj1JRuyYeco";
 
   try {
@@ -70,23 +66,23 @@ prefixRouter.register("timer", isOwner, checkIsPaused, async ({ room, tags, mana
   } catch (err) {
     logger.error(err);
   }
-});
+}
 
-prefixRouter.register("ws", isOwner, async (ctx) => {
+export async function handleWs(ctx: Context) {
   const count = await app.io.fetchSockets();
 
   ctx.responder.respond(`Connected ws: ${count.length}`);
-});
+}
 
-prefixRouter.register("ping", isOwnerOrOwnerRoom, (ctx) => {
+export function handlePing(ctx: Context) {
   ctx.responder.respond("Pong imGlitch 👍");
-});
+}
 
-prefixRouter.register("help", (ctx) => {
+export function handleHelp(ctx: Context) {
   ctx.responder.respondWithMention(`available commands: !fm <link/id/title>, !fm song, !fm wrong, !fm voteskip`);
-});
+}
 
-prefixRouter.register("song", async ({ responder, room, manager }) => {
+export async function handleSong({ responder, room, manager }: Context) {
   try {
     const current = await manager.getCurrent(room);
 
@@ -99,9 +95,9 @@ prefixRouter.register("song", async ({ responder, room, manager }) => {
   } catch (e) {
     logger.error(e);
   }
-});
+}
 
-prefixRouter.register("wrong", async ({ responder, room, tags, manager }) => {
+export async function handleWrong({ responder, room, tags, manager }: Context) {
   const isPaused = await manager.isPaused(room);
 
   if (isPaused) {
@@ -133,9 +129,9 @@ prefixRouter.register("wrong", async ({ responder, room, tags, manager }) => {
   redisClient.lrem(`${room}:playlist`, -1, JSON.stringify(found));
 
   responder.respondWithMention(`removed your last song`);
-});
+}
 
-prefixRouter.register("clear", isOwnerBroadcasterMod, async (ctx) => {
+export async function handleClear(ctx: Context) {
   redisClient
     .multi()
     .del(`${ctx.room}:current`)
@@ -145,14 +141,14 @@ prefixRouter.register("clear", isOwnerBroadcasterMod, async (ctx) => {
       app.io.in(ctx.room).emit("clear");
     })
     .catch((err) => logger.error(err));
-});
+}
 
-prefixRouter.register("disconnect", isOwnerBroadcasterMod, async (ctx) => {
+export async function handleDiconnect(ctx: Context) {
   ctx.responder.respondWithMention(`disconnecting... :(`);
   client.part(ctx.room);
-});
+}
 
-prefixRouter.register("skip", isOwnerBroadcasterMod, checkIsPaused, async (ctx) => {
+export async function handleSkip(ctx: Context) {
   try {
     ctx.manager.skip(ctx.room);
     ctx.responder.respondWithMention("skipping...");
@@ -164,9 +160,9 @@ prefixRouter.register("skip", isOwnerBroadcasterMod, checkIsPaused, async (ctx) 
       ctx.responder.respondWithMention("could not add song");
     }
   }
-});
+}
 
-prefixRouter.register("play", isOwnerBroadcasterMod, (ctx) => {
+export function handlePlay(ctx: Context) {
   try {
     ctx.manager.play(ctx.room);
     ctx.responder.respondWithMention("Playing");
@@ -178,9 +174,9 @@ prefixRouter.register("play", isOwnerBroadcasterMod, (ctx) => {
       ctx.responder.respondWithMention("Error while playing");
     }
   }
-});
+}
 
-prefixRouter.register("pause", isOwnerBroadcasterMod, (ctx) => {
+export function handlePause(ctx: Context) {
   try {
     ctx.manager.pause(ctx.room);
     ctx.responder.respondWithMention("Paused");
@@ -192,17 +188,17 @@ prefixRouter.register("pause", isOwnerBroadcasterMod, (ctx) => {
       ctx.responder.respondWithMention("Error while pausing");
     }
   }
-});
+}
 
-prefixRouter.register("set", isOwnerBroadcasterMod, (ctx) => {
+export function handleSet(ctx: Context) {
   ctx.responder.respondWithMention("available commands: " + Array.from(setRouter.routes.keys()).join(", "));
-});
+}
 
-prefixRouter.register("search", (ctx) => {
+export function handleSearch(ctx: Context) {
   ctx.responder.respondWithMention("use !fm <link/title/id> to add a song");
-});
+}
 
-prefixRouter.register("voteskip", checkIsPaused, async (ctx) => {
+export async function handleVoteskip(ctx: Context) {
   await redisClient.sadd(`${ctx.room}:votes`, ctx.tags["username"]!);
 
   let current;
@@ -232,9 +228,9 @@ prefixRouter.register("voteskip", checkIsPaused, async (ctx) => {
   } else {
     ctx.responder.respond(`${totalVotes}/${thresholdVotes} votes`);
   }
-});
+}
 
-prefixRouter.register("ban", isOwnerBroadcasterMod, async (ctx, args) => {
+export async function handleBan(ctx: Context, args: string[]) {
   let user: HelixUser | undefined;
 
   try {
@@ -264,9 +260,9 @@ prefixRouter.register("ban", isOwnerBroadcasterMod, async (ctx, args) => {
       ctx.responder.respondWithMention("error while banning");
     }
   }
-});
+}
 
-prefixRouter.register("unban", isOwnerBroadcasterMod, async (ctx, args) => {
+export async function handleUnban(ctx: Context, args: string[]) {
   let user: HelixUser | undefined;
 
   try {
@@ -296,6 +292,4 @@ prefixRouter.register("unban", isOwnerBroadcasterMod, async (ctx, args) => {
   await ban.remove();
 
   ctx.responder.respondWithMention("User has been unbanned");
-});
-
-prefixRouter.registerNextRouter("set", setRouter);
+}

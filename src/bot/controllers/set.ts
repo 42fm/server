@@ -1,12 +1,10 @@
 import { redisClient } from "@db/redis.js";
-import { Router } from "@lib/router.js";
+import { type Context } from "@lib/router.js";
 import { getUserWithSettings } from "@services/user.js";
 import { getAppAccessToken } from "@utils/appAccessToken.js";
 import axios from "axios";
 
-export const setRouter = new Router();
-
-setRouter.register("minViews", async (ctx, args) => {
+export async function handleMinViews(ctx: Context, args: string[]) {
   if (args[0] === undefined) {
     ctx.responder.respond("No views count provided");
     return;
@@ -31,9 +29,9 @@ setRouter.register("minViews", async (ctx, args) => {
   await user.settings.save();
 
   ctx.responder.respond(`Minimum views changed to ${num} views`);
-});
+}
 
-setRouter.register("minDuration", async (ctx, args) => {
+export async function handleMinDuration(ctx: Context, args: string[]) {
   if (args[0] === undefined) {
     ctx.responder.respond("No length provided");
     return;
@@ -58,9 +56,9 @@ setRouter.register("minDuration", async (ctx, args) => {
   await user.settings.save();
 
   ctx.responder.respond(`Minimum duration changed to ${num} seconds`);
-});
+}
 
-setRouter.register("maxDuration", async (ctx, args) => {
+export async function handleMaxDuration(ctx: Context, args: string[]) {
   if (args[0] === undefined) {
     ctx.responder.respond("No length provided");
     return;
@@ -85,9 +83,9 @@ setRouter.register("maxDuration", async (ctx, args) => {
   await user.settings.save();
 
   ctx.responder.respond(`Maximum duration changed to ${num} seconds`);
-});
+}
 
-setRouter.register("streamSync", async (ctx, args) => {
+export async function handleStreamSync(ctx: Context, args: string[]) {
   if (args[0] === undefined) {
     ctx.responder.respond("No value provided");
     return;
@@ -148,7 +146,7 @@ setRouter.register("streamSync", async (ctx, args) => {
       ctx.responder.respond("Not subscribed to stream");
     }
   }
-});
+}
 
 async function subscribeToStream(id: string, room: string, token: string) {
   const responseStreamOnline = await axios.post(

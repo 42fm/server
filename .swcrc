@@ -8,6 +8,7 @@
     },
     "baseUrl": ".",
     "paths": {
+      "@bot/*": ["./src/bot/*"],
       "@commands/*": ["./src/commands/*"],
       "@config/*": ["./src/config/*"],
       "@constants/*": ["./src/constants/*"],

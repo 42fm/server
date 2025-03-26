@@ -1,9 +1,9 @@
+import morganMiddleware from "@api/middleware/morgan.js";
+import { eventsRouter } from "@api/routes/events.js";
+import { healthRouter } from "@api/routes/health.js";
 import { client } from "@constants/tmi.js";
 import connection from "@db/index.js";
 import { SongManager } from "@lib/manager.js";
-import morganMiddleware from "@middleware/morganMiddleware.js";
-import { eventsRouter } from "@routes/events.js";
-import { healthRouter } from "@routes/health.js";
 import { getUsersWithEnabledChannel } from "@services/user.js";
 import { logger } from "@utils/loggers.js";
 import { sleep } from "@utils/sleep.js";
@@ -13,8 +13,8 @@ import type { Application } from "express";
 import express from "express";
 import { createServer, type Server as HttpServer } from "http";
 import type { Server as IoServer } from "socket.io";
-import { createSocketServer } from "src/socket.js";
 import type { Client } from "tmi.js";
+import { createSocketServer } from "./socket.js";
 
 class App {
   app: Application;

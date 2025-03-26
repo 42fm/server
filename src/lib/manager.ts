@@ -1,10 +1,10 @@
 import { redisClient } from "@db/redis.js";
+import type { SocketData } from "@root/socket.js";
 import { getUserWithSettings } from "@services/user.js";
 import { logger } from "@utils/loggers.js";
 import { getVideoInfo } from "@utils/manager.js";
 import { parseTags } from "@utils/tagsParser.js";
 import type { Server } from "socket.io";
-import type { SocketData } from "src/socket.js";
 import type { ChatUserstate } from "tmi.js";
 
 /**

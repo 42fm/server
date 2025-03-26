@@ -1,4 +1,4 @@
-import { router } from "@commands/index.js";
+import { router } from "@bot/routes/index.js";
 import { queue } from "@constants/queue.js";
 import { client } from "@constants/tmi.js";
 import connection from "@db/index.js";
@@ -8,8 +8,8 @@ import { logger } from "@utils/loggers.js";
 import { parseMessage } from "@utils/parser.js";
 import "dotenv/config";
 import "reflect-metadata";
-import { App } from "src/app.js";
 import type { ChatUserstate } from "tmi.js";
+import { App } from "./app.js";
 
 const { COMMAND_PREFIX } = process.env;
 

@@ -2,18 +2,12 @@ import { ONE_HOUR } from "@constants/constants.js";
 import { limiter } from "@constants/limiter.js";
 import { youtubeApi } from "@constants/youtube.js";
 import { SongManagerError } from "@lib/manager.js";
-import { Router } from "@lib/router.js";
-import { isBanned } from "@middleware/isBanned.js";
+import { type Context } from "@lib/router.js";
+import { app } from "@root/index.js";
 import { logger } from "@utils/loggers.js";
-import { app } from "src/index.js";
 import ytdl from "ytdl-core";
-import { prefixRouter } from "./prefix.js";
 
-export const router = new Router();
-
-const { COMMAND_PREFIX } = process.env;
-
-router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags, manager }, args) => {
+export async function handleCommand({ responder, room, tags, manager }: Context, args: string[]) {
   const input = args[0];
 
   let id: string;
@@ -96,6 +90,4 @@ router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags, 
       responder.respondWithMention("could not add song");
     }
   }
-});
-
-router.registerNextRouter(`!${COMMAND_PREFIX}`, prefixRouter);
+}

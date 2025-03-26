@@ -1,10 +1,8 @@
 import { client } from "@constants/tmi.js";
-import { type Request, Router, raw } from "express";
+import { app } from "@root/index.js";
+import { logger } from "@utils/loggers.js";
+import { type Request, type Response } from "express";
 import crypto from "node:crypto";
-import { app } from "src/index.js";
-import { logger } from "../utils/loggers.js";
-
-const router = Router();
 
 const { TWITCH_EVENTS_SECRET } = process.env;
 
@@ -19,7 +17,7 @@ const MESSAGE_TYPE_REVOCATION = "revocation";
 
 const HMAC_PREFIX = "sha256=";
 
-router.post("/eventsub", raw({ type: "application/json" }), async (req, res) => {
+export async function eventsubHandler(req: Request, res: Response) {
   const secret = getSecret();
   const message = getHmacMessage(req);
   const hmac = HMAC_PREFIX + getHmac(secret, message); // Signature to compare
@@ -70,7 +68,7 @@ router.post("/eventsub", raw({ type: "application/json" }), async (req, res) => 
     console.log("403"); // Signatures didn't match.
     res.sendStatus(403);
   }
-});
+}
 
 function getSecret() {
   return TWITCH_EVENTS_SECRET!;
@@ -87,5 +85,3 @@ function getHmac(secret: string, message: string) {
 function verifyMessage(hmac: string, verifySignature: string) {
   return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(verifySignature));
 }
-
-export { router as eventsRouter };

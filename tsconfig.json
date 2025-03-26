@@ -17,12 +17,15 @@
     "baseUrl": ".",
     "strict": true,
     "paths": {
+      "@api/*": ["./src/api/*"],
+      "@bot/*": ["./src/bot/*"],
       "@commands/*": ["./src/commands/*"],
       "@config/*": ["./src/config/*"],
       "@constants/*": ["./src/constants/*"],
       "@db/*": ["./src/db/*"],
       "@lib/*": ["./src/lib/*"],
       "@middleware/*": ["./src/middleware/*"],
+      "@root/*": ["./src/*"],
       "@routes/*": ["./src/routes/*"],
       "@services/*": ["./src/services/*"],
       "@utils/*": ["./src/utils/*"]

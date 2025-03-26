@@ -1,14 +1,12 @@
+import { client } from "@constants/tmi.js";
+import { User } from "@db/entity/User.js";
+import { logger } from "@utils/loggers.js";
 import axios, { type AxiosResponse } from "axios";
-import { type Request, type Response, Router } from "express";
-import { client } from "../constants/tmi.js";
-import { User } from "../db/entity/User.js";
-import { logger } from "../utils/loggers.js";
-
-const router = Router();
+import { type Request, type Response } from "express";
 
 const { TWITCH_CLIENT_ID, TWITCH_SECRET, URL } = process.env;
 
-router.get("/twitch", async (req: Request, res: Response) => {
+export async function twitchHandler(req: Request, res: Response) {
   const code = req.query.code;
 
   if (!code || typeof code !== "string") {
@@ -88,16 +86,14 @@ router.get("/twitch", async (req: Request, res: Response) => {
           </body>
         </html>
         `);
-});
+}
 
-router.get("/twitch/mobile", async (req: Request, res: Response) => {
+export async function twitchMobileHandler(req: Request, res: Response) {
   console.log(req.query);
   console.log(req.params);
 
   res.redirect("fm://twitch/mobile");
-});
-
-export default router;
+}
 
 export interface TwitchAuthResponse {
   id: string;

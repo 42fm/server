@@ -1,5 +1,5 @@
-import type { Args, Context, Next } from "../lib/router.js";
-import { parseTags } from "../utils/tagsParser.js";
+import type { Args, Context, Next } from "@lib/router.js";
+import { parseTags } from "@utils/tagsParser.js";
 
 export function isOwnerOrOwnerRoom(ctx: Context, args: Args, next: Next) {
   const { isOwner } = parseTags(ctx.tags);
