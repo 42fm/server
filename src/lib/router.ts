@@ -5,6 +5,7 @@ export interface Context {
   responder: Responder;
   room: string;
   tags: ChatUserstate;
+  manager: SongManagerI;
 }
 
 export type Args = string[];

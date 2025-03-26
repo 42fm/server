@@ -1,12 +1,11 @@
 import { ONE_HOUR } from "@constants/constants.js";
 import { limiter } from "@constants/limiter.js";
-import { songManager } from "@constants/manager.js";
 import { youtubeApi } from "@constants/youtube.js";
-import { redisClient } from "@db/redis.js";
 import { SongManagerError } from "@lib/manager.js";
 import { Router } from "@lib/router.js";
 import { isBanned } from "@middleware/isBanned.js";
 import { logger } from "@utils/loggers.js";
+import { app } from "src/index.js";
 import ytdl from "ytdl-core";
 import { prefixRouter } from "./prefix.js";
 
@@ -14,7 +13,7 @@ export const router = new Router();
 
 const { COMMAND_PREFIX } = process.env;
 
-router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags }, args) => {
+router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags, manager }, args) => {
   const input = args[0];
 
   let id: string;
@@ -24,23 +23,19 @@ router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags }
     return;
   }
 
-  const isPaused = await redisClient.get(`${room}:paused`);
-
-  if (isPaused) {
+  if (await app.manager[room].isPaused(room)) {
     responder.respondWithMention("Cannot add song while paused");
     return;
   }
 
-  const current = await redisClient.lrange(`${room}:playlist`, 0, -1);
-
-  const list = current.map((item) => JSON.parse(item)) as Song[];
+  const list = await manager.getPlaylist(room);
 
   const totalDuration = list.reduce((acc, item) => acc + item.duration, 0);
 
   const totalSongsByUser = list.filter((item) => item.username === tags["username"]).length;
 
   logger.info(`Total songs by user: ${totalSongsByUser}`);
-  // Only add to queuq if the total playlist duration is less than the max duration
+
   if (totalSongsByUser >= 5) {
     responder.respondWithMention("you have reached the maximum amount of songs in queue");
     return;
@@ -48,7 +43,6 @@ router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags }
 
   if (totalDuration > ONE_HOUR * 2) {
     responder.respondWithMention("playlist is full");
-
     return;
   }
 
@@ -88,7 +82,7 @@ router.register(`!${COMMAND_PREFIX}`, isBanned, async ({ responder, room, tags }
   }
 
   try {
-    await songManager.add({
+    await manager.add({
       id,
       room,
       tags,

@@ -8,25 +8,29 @@ class QueueNode {
   }
 }
 
-export class Queue {
-  limit: number;
-  remaining: number;
-  head: QueueNode;
-  tail: QueueNode;
+export interface QueueI {
+  add(cb: () => void): void;
+}
 
-  constructor({ limit, intervalMs }: { limit: number; intervalMs: number }) {
-    this.limit = limit;
-    this.remaining = limit;
+export class Queue implements QueueI {
+  private limitPerInterval: number;
+  private remaining: number;
+  private head: QueueNode;
+  private tail: QueueNode;
+
+  constructor({ limitPerInterval, reseltLimitMs }: { limitPerInterval: number; reseltLimitMs: number }) {
+    this.limitPerInterval = limitPerInterval;
+    this.remaining = limitPerInterval;
     this.head = new QueueNode();
     this.tail = this.head;
 
     setInterval(() => {
-      this.remaining = this.limit;
+      this.remaining = this.limitPerInterval;
       this.run();
-    }, intervalMs);
+    }, reseltLimitMs);
   }
 
-  run() {
+  private run() {
     let dummy = this.head;
 
     while (dummy.next && this.remaining > 0) {

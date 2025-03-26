@@ -1,10 +1,10 @@
-import { songManager } from "@constants/manager.js";
 import { client } from "@constants/tmi.js";
 import { type Request, Router, raw } from "express";
 import crypto from "node:crypto";
+import { app } from "src/index.js";
 import { logger } from "../utils/loggers.js";
 
-const eventsRouter = Router();
+const router = Router();
 
 const { TWITCH_EVENTS_SECRET } = process.env;
 
@@ -19,7 +19,7 @@ const MESSAGE_TYPE_REVOCATION = "revocation";
 
 const HMAC_PREFIX = "sha256=";
 
-eventsRouter.post("/eventsub", raw({ type: "application/json" }), async (req, res) => {
+router.post("/eventsub", raw({ type: "application/json" }), async (req, res) => {
   const secret = getSecret();
   const message = getHmacMessage(req);
   const hmac = HMAC_PREFIX + getHmac(secret, message); // Signature to compare
@@ -34,7 +34,7 @@ eventsRouter.post("/eventsub", raw({ type: "application/json" }), async (req, re
         const room = notification.event.broadcaster_user_login.toLowerCase();
         logger.info(`Pausing ${notification.event.broadcaster_user_login} because they went live`);
         try {
-          await songManager.pause(room);
+          await app.manager[room].pause(room);
           client.say(room, "Pausing because streamer went live PogChamp");
         } catch (err) {
           logger.error(err);
@@ -43,7 +43,7 @@ eventsRouter.post("/eventsub", raw({ type: "application/json" }), async (req, re
         const room = notification.event.broadcaster_user_login.toLowerCase();
         logger.info(`Resuming ${notification.event.broadcaster_user_login} because they went offline`);
         try {
-          await songManager.play(room);
+          await app.manager[room].pause(room);
           client.say(room, "Resuming because streamer went offline PogChamp");
         } catch (err) {
           logger.error(err);
@@ -88,4 +88,4 @@ function verifyMessage(hmac: string, verifySignature: string) {
   return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(verifySignature));
 }
 
-export default eventsRouter;
+export { router as eventsRouter };

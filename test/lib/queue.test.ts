@@ -7,7 +7,7 @@ mock.timers.enable({ apis: ["setInterval"] });
 describe("queue", () => {
   it("should refresh limit after interval", () => {
     const callback = mock.fn();
-    const queue = new Queue({ limit: 3, intervalMs: 1000 });
+    const queue = new Queue({ limitPerInterval: 3, reseltLimitMs: 1000 });
 
     queue.add(callback);
     queue.add(callback);
@@ -23,7 +23,7 @@ describe("queue", () => {
 
   it("should call each function after 1s after the first function", () => {
     const callback = mock.fn();
-    const queue = new Queue({ limit: 1, intervalMs: 1000 });
+    const queue = new Queue({ limitPerInterval: 1, reseltLimitMs: 1000 });
 
     queue.add(callback);
     queue.add(callback);

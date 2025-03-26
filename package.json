@@ -51,7 +51,8 @@
     "typeorm": "^0.3.21",
     "typescript": "^5.8.2",
     "winston": "^3.17.0",
-    "ytdl-core": "^4.11.5"
+    "ytdl-core": "^4.11.5",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

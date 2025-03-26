@@ -1,6 +1,6 @@
-import { User } from "@db/entity/User.js";
 import { redisClient } from "@db/redis.js";
 import { Router } from "@lib/router.js";
+import { getUserWithSettings } from "@services/user.js";
 import { getAppAccessToken } from "@utils/appAccessToken.js";
 import axios from "axios";
 
@@ -19,14 +19,7 @@ setRouter.register("minViews", async (ctx, args) => {
     return;
   }
 
-  const user = await User.findOne({
-    where: {
-      username: ctx.room,
-    },
-    relations: {
-      settings: true,
-    },
-  });
+  const user = await getUserWithSettings(ctx.room);
 
   if (!user) {
     ctx.responder.respond("User not found");
@@ -53,14 +46,7 @@ setRouter.register("minDuration", async (ctx, args) => {
     return;
   }
 
-  const user = await User.findOne({
-    where: {
-      username: ctx.room,
-    },
-    relations: {
-      settings: true,
-    },
-  });
+  const user = await getUserWithSettings(ctx.room);
 
   if (!user) {
     ctx.responder.respond("User not found");
@@ -87,14 +73,7 @@ setRouter.register("maxDuration", async (ctx, args) => {
     return;
   }
 
-  const user = await User.findOne({
-    where: {
-      username: ctx.room,
-    },
-    relations: {
-      settings: true,
-    },
-  });
+  const user = await getUserWithSettings(ctx.room);
 
   if (!user) {
     ctx.responder.respond("User not found");
@@ -121,14 +100,7 @@ setRouter.register("streamSync", async (ctx, args) => {
 
   const bool = args[0].toLowerCase() === "true";
 
-  const user = await User.findOne({
-    where: {
-      username: ctx.room,
-    },
-    relations: {
-      settings: true,
-    },
-  });
+  const user = await getUserWithSettings(ctx.room);
 
   if (!user) {
     ctx.responder.respond("User not found");

@@ -1,28 +1,36 @@
 import { redisClient } from "@db/redis.js";
+import { getUserWithSettings } from "@services/user.js";
 import { logger } from "@utils/loggers.js";
-import { getUser, getVideoInfo } from "@utils/manager.js";
+import { getVideoInfo } from "@utils/manager.js";
 import { parseTags } from "@utils/tagsParser.js";
+import type { Server } from "socket.io";
+import type { SocketData } from "src/socket.js";
 import type { ChatUserstate } from "tmi.js";
-import { io } from "../index.js";
 
 /**
  * The purpose of this custom error is to catch them later and display the message to the user, but in case of a regular error we don't want to display anything.
  */
 export class SongManagerError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "SongManagerError";
-  }
+  name = "SongManagerError";
 }
 
-export class SongManager {
+export class SongManager implements SongManagerI {
+  io: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+  constructor(io: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
+    this.io = io;
+  }
+
   /**
    * Adds a song with the given id to a specific room
    */
   async add({ id, room, tags }: { id: string; room: string; tags: ChatUserstate }) {
     const { views, duration, title, channelName, thumbnail } = await getVideoInfo(id);
 
-    const user = await getUser(room);
+    const user = await getUserWithSettings(room);
+
+    if (!user) {
+      throw new SongManagerError("user not found");
+    }
 
     const { isBroadcaster, isMod, isOwner } = parseTags(tags);
 
@@ -66,10 +74,10 @@ export class SongManager {
             isPlaying: true,
           };
 
-          io.in(room).emit("song", { current: temp, list: playlist });
+          this.io.in(room).emit("song", { current: temp, list: playlist });
         } else {
           redisClient.rpush(`${room}:playlist`, JSON.stringify(song));
-          io.in(room).emit("playlistAdd", song);
+          this.io.in(room).emit("playlistAdd", song);
         }
       });
   }
@@ -102,7 +110,7 @@ export class SongManager {
           redisClient
             .del(`${room}:current`)
             .then(() => {
-              io.in(room).emit("skip", { type: "noplaylist" });
+              this.io.in(room).emit("skip", { type: "noplaylist" });
             })
             .catch((err) => logger.error(err));
           return;
@@ -117,7 +125,7 @@ export class SongManager {
           redisClient
             .setex(`${room}:current`, parsedSong.duration, nextSong)
             .then(() => {
-              io.in(room).emit("skip", {
+              this.io.in(room).emit("skip", {
                 type: "playlist",
                 current: currentWithTTL,
               });
@@ -142,7 +150,7 @@ export class SongManager {
     await redisClient.set(`${room}:timeRemaining`, ttl);
     await redisClient.set(`${room}:paused`, "true");
 
-    io.in(room).emit("pause");
+    this.io.in(room).emit("pause");
   }
 
   async play(room: string) {
@@ -161,6 +169,56 @@ export class SongManager {
 
     await redisClient.expire(`${room}:current`, timeRemaining);
     await redisClient.del(`${room}:paused`);
-    io.in(room).emit("play");
+    this.io.in(room).emit("play");
+  }
+
+  async getCurrent(room: string): Promise<CurrentSong | null> {
+    const current = await redisClient.get(`${room}:current`);
+
+    if (!current) {
+      return null;
+    }
+
+    const currentSong: CurrentSong = JSON.parse(current);
+    return currentSong;
+  }
+
+  async getPlaylist(room: string): Promise<Song[]> {
+    const playlist = await redisClient.lrange(`${room}:playlist`, 0, -1);
+    const list = playlist.map((item) => JSON.parse(item)) as Song[];
+    return list;
+  }
+
+  async isPaused(room: string) {
+    return await redisClient.get(`${room}:paused`);
+  }
+
+  playNextSong(room: string) {
+    return redisClient
+      .multi()
+      .lpop(`${room}:playlist`)
+      .lrange(`${room}:playlist`, 0, -1)
+      .exec((err, replies) => {
+        const song = replies![0][1] as string;
+        const playlist = replies![1][1] as string[];
+
+        if (!song) return;
+
+        const parsedSong = JSON.parse(song);
+        const list = playlist.map((item) => JSON.parse(item));
+
+        const songWithTTL: CurrentSong = {
+          ...parsedSong,
+          isPlaying: true,
+        };
+
+        redisClient
+          .setex(`${room}:current`, parsedSong.duration, song)
+          .then(() => {
+            this.io.in(room).emit("song", { current: songWithTTL, list });
+            redisClient.del(`${room}:votes`);
+          })
+          .catch((err) => logger.error(err));
+      });
   }
 }

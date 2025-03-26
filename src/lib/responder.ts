@@ -1,13 +1,19 @@
-import type { ChatUserstate, Client } from "tmi.js";
-import type { Queue } from "./queue.js";
+import type { Actions, ChatUserstate } from "tmi.js";
+import type { QueueI } from "./queue.js";
+
+type Say = Actions["say"];
+
+export interface ClientI {
+  say: Say;
+}
 
 export class Responder {
-  client: Client;
+  client: ClientI;
   tags: ChatUserstate;
   room: string;
-  queue: Queue;
+  queue: QueueI;
 
-  constructor(client: Client, tags: ChatUserstate, room: string, queue: Queue) {
+  constructor(client: ClientI, tags: ChatUserstate, room: string, queue: QueueI) {
     this.client = client;
     this.tags = tags;
     this.room = room;

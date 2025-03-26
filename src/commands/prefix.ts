@@ -1,4 +1,3 @@
-import { songManager } from "@constants/manager.js";
 import { client } from "@constants/tmi.js";
 import { Ban } from "@db/entity/Ban.js";
 import { redisClient } from "@db/redis.js";
@@ -8,9 +7,9 @@ import { checkIsPaused } from "@middleware/checkIsPaused.js";
 import { isOwner, isOwnerBroadcasterMod, isOwnerOrOwnerRoom } from "@middleware/tags.js";
 import { GetUserError, type HelixUser, getUser } from "@utils/getUser.js";
 import { logger } from "@utils/loggers.js";
+import { app } from "src/index.js";
 import { QueryFailedError } from "typeorm";
 import ytdl from "ytdl-core";
-import { io } from "../index.js";
 import { songs } from "../songs.js";
 import { setRouter } from "./set.js";
 
@@ -43,20 +42,38 @@ prefixRouter.register("count", isOwner, (ctx) => {
   ctx.responder.respond(`Connected channels: ${count}`);
 });
 
-prefixRouter.register("random", isOwner, checkIsPaused, ({ room, tags }) => {
+prefixRouter.register("random", isOwner, checkIsPaused, ({ room, tags, manager }) => {
   const song = songs[Math.floor(Math.random() * songs.length)];
 
   const id = ytdl.getURLVideoID(song);
 
-  songManager.add({
-    id,
-    room,
-    tags,
-  });
+  try {
+    manager.add({
+      id,
+      room,
+      tags,
+    });
+  } catch (err) {
+    logger.error(err);
+  }
+});
+
+prefixRouter.register("timer", isOwner, checkIsPaused, async ({ room, tags, manager }) => {
+  const id = "bj1JRuyYeco";
+
+  try {
+    await manager.add({
+      id,
+      room,
+      tags,
+    });
+  } catch (err) {
+    logger.error(err);
+  }
 });
 
 prefixRouter.register("ws", isOwner, async (ctx) => {
-  const count = await io.fetchSockets();
+  const count = await app.io.fetchSockets();
 
   ctx.responder.respond(`Connected ws: ${count.length}`);
 });
@@ -69,44 +86,41 @@ prefixRouter.register("help", (ctx) => {
   ctx.responder.respondWithMention(`available commands: !fm <link/id/title>, !fm song, !fm wrong, !fm voteskip`);
 });
 
-prefixRouter.register("song", async ({ responder, room }) => {
+prefixRouter.register("song", async ({ responder, room, manager }) => {
   try {
-    const res = await redisClient.get(`${room}:current`);
+    const current = await manager.getCurrent(room);
 
-    if (!res) {
+    if (!current) {
       responder.respondWithMention("Nothing is playing");
       return;
     }
 
-    const currentSong: CurrentSong = JSON.parse(res);
-
-    responder.respondWithMention(`Current song: https://youtu.be/${currentSong.yt_id}`);
+    responder.respondWithMention(`Current song: https://youtu.be/${current.yt_id}`);
   } catch (e) {
     logger.error(e);
   }
 });
 
-prefixRouter.register("wrong", async ({ responder, room, tags }) => {
-  const isPaused = await redisClient.get(`${room}:paused`);
+prefixRouter.register("wrong", async ({ responder, room, tags, manager }) => {
+  const isPaused = await manager.isPaused(room);
 
   if (isPaused) {
     responder.respondWithMention("Cannot delete wrong song while paused");
     return;
   }
 
-  const current = await redisClient.lrange(`${room}:playlist`, 0, -1);
-  const list = current.map((item) => JSON.parse(item));
+  const playlist = await manager.getPlaylist(room);
 
-  if (list.length < 1) {
+  if (playlist.length < 1) {
     responder.respondWithMention(`playlist empty`);
     return;
   }
 
   let found;
 
-  for (let i = list.length - 1; i > -1; i--) {
-    if (list[i].username === tags["username"]) {
-      found = list[i];
+  for (let i = playlist.length - 1; i > -1; i--) {
+    if (playlist[i].username === tags["username"]) {
+      found = playlist[i];
       break;
     }
   }
@@ -128,7 +142,7 @@ prefixRouter.register("clear", isOwnerBroadcasterMod, async (ctx) => {
     .del(`${ctx.room}:playlist`)
     .exec(() => {
       ctx.responder.respond("Playlist cleared");
-      io.in(ctx.room).emit("clear");
+      app.io.in(ctx.room).emit("clear");
     })
     .catch((err) => logger.error(err));
 });
@@ -140,7 +154,7 @@ prefixRouter.register("disconnect", isOwnerBroadcasterMod, async (ctx) => {
 
 prefixRouter.register("skip", isOwnerBroadcasterMod, checkIsPaused, async (ctx) => {
   try {
-    await songManager.skip(ctx.room);
+    ctx.manager.skip(ctx.room);
     ctx.responder.respondWithMention("skipping...");
   } catch (err) {
     if (err instanceof SongManagerError) {
@@ -152,9 +166,9 @@ prefixRouter.register("skip", isOwnerBroadcasterMod, checkIsPaused, async (ctx) 
   }
 });
 
-prefixRouter.register("play", isOwnerBroadcasterMod, async (ctx) => {
+prefixRouter.register("play", isOwnerBroadcasterMod, (ctx) => {
   try {
-    await songManager.play(ctx.room);
+    ctx.manager.play(ctx.room);
     ctx.responder.respondWithMention("Playing");
   } catch (err) {
     if (err instanceof SongManagerError) {
@@ -166,20 +180,18 @@ prefixRouter.register("play", isOwnerBroadcasterMod, async (ctx) => {
   }
 });
 
-prefixRouter.register("pause", isOwnerBroadcasterMod, async (ctx) => {
-  songManager
-    .pause(ctx.room)
-    .then(() => {
-      ctx.responder.respondWithMention("Paused");
-    })
-    .catch((err) => {
-      if (err instanceof SongManagerError) {
-        ctx.responder.respondWithMention(err.message);
-      } else {
-        logger.error(err);
-        ctx.responder.respondWithMention("error while pausing");
-      }
-    });
+prefixRouter.register("pause", isOwnerBroadcasterMod, (ctx) => {
+  try {
+    ctx.manager.pause(ctx.room);
+    ctx.responder.respondWithMention("Paused");
+  } catch (err) {
+    if (err instanceof SongManagerError) {
+      ctx.responder.respondWithMention(err.message);
+    } else {
+      logger.error(err);
+      ctx.responder.respondWithMention("Error while pausing");
+    }
+  }
 });
 
 prefixRouter.register("set", isOwnerBroadcasterMod, (ctx) => {
@@ -196,7 +208,7 @@ prefixRouter.register("voteskip", checkIsPaused, async (ctx) => {
   let current;
 
   try {
-    current = await redisClient.get(`${ctx.room}:current`);
+    current = await ctx.manager.getCurrent(ctx.room);
   } catch (err) {
     logger.error(err);
     return;
@@ -209,13 +221,13 @@ prefixRouter.register("voteskip", checkIsPaused, async (ctx) => {
 
   const totalVotes = await redisClient.scard(`${ctx.room}:votes`);
 
-  const sockets = await io.in(ctx.room).fetchSockets();
+  const sockets = await app.io.in(ctx.room).fetchSockets();
 
   const thresholdVotes = Math.ceil(sockets.length / 10);
 
   if (totalVotes >= thresholdVotes) {
     await redisClient.del(`${ctx.room}:votes`);
-    await songManager.skip(ctx.room);
+    ctx.manager.skip(ctx.room);
     ctx.responder.respond(`${totalVotes}/${thresholdVotes} votes, skipping...`);
   } else {
     ctx.responder.respond(`${totalVotes}/${thresholdVotes} votes`);
