@@ -11,7 +11,7 @@ import "reflect-metadata";
 import { App } from "src/app.js";
 import type { ChatUserstate } from "tmi.js";
 
-const { PORT, URL, COMMAND_PREFIX, NODE_ENV, RENDER_GIT_COMMIT, TWITCH_USERNAME } = process.env;
+const { COMMAND_PREFIX } = process.env;
 
 client.on("chat", clientMessageHandler);
 
