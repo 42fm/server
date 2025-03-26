@@ -1,5 +1,5 @@
 import { setRouter } from "@bot/routes/set.js";
-import { client } from "@constants/tmi.js";
+import { client } from "@config/tmi.js";
 import { Ban } from "@db/entity/Ban.js";
 import { redisClient } from "@db/redis.js";
 import { SongManagerError } from "@lib/manager.js";

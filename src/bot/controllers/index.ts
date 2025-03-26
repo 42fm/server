@@ -1,6 +1,6 @@
-import { ONE_HOUR } from "@constants/constants.js";
-import { limiter } from "@constants/limiter.js";
-import { youtubeApi } from "@constants/youtube.js";
+import { limiter } from "@config/limiter.js";
+import { youtubeApi } from "@config/youtube.js";
+import { ONE_HOUR } from "@constants/time.js";
 import { SongManagerError } from "@lib/manager.js";
 import { type Context } from "@lib/router.js";
 import { app } from "@root/index.js";

@@ -1,6 +1,6 @@
 import { router } from "@bot/routes/index.js";
-import { queue } from "@constants/queue.js";
-import { client } from "@constants/tmi.js";
+import { queue } from "@config/queue.js";
+import { client } from "@config/tmi.js";
 import connection from "@db/index.js";
 import { redisClient, sub } from "@db/redis.js";
 import { Responder } from "@lib/responder.js";

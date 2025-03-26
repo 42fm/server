@@ -1,4 +1,4 @@
-import { client } from "@constants/tmi.js";
+import { client } from "@config/tmi.js";
 import { app } from "@root/index.js";
 import { logger } from "@utils/loggers.js";
 import { type Request, type Response } from "express";

@@ -1,7 +1,7 @@
 import morganMiddleware from "@api/middleware/morgan.js";
 import { eventsRouter } from "@api/routes/events.js";
 import { healthRouter } from "@api/routes/health.js";
-import { client } from "@constants/tmi.js";
+import { client } from "@config/tmi.js";
 import connection from "@db/index.js";
 import { SongManager } from "@lib/manager.js";
 import { getUsersWithEnabledChannel } from "@services/user.js";

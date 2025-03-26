@@ -1,4 +1,4 @@
-import { client } from "@constants/tmi.js";
+import { client } from "@config/tmi.js";
 import { User } from "@db/entity/User.js";
 import { logger } from "@utils/loggers.js";
 import axios, { type AxiosResponse } from "axios";

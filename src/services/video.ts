@@ -1,4 +1,4 @@
-import { youtubeApi } from "@constants/youtube.js";
+import { youtubeApi } from "@config/youtube.js";
 import { SongManagerError } from "@lib/manager.js";
 import { parse, toSeconds } from "iso8601-duration";
 
