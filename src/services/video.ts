@@ -24,6 +24,7 @@ export async function getVideoInfo(id: string) {
   const isEmbeddable = item.status!.embeddable;
   const isAgeRestricted = item.contentDetails!.contentRating!.ytRating === "ytAgeRestricted";
   const isNotVideo = item.snippet!.liveBroadcastContent !== "none";
+  const isUnlisted = item.status?.privacyStatus === "unlisted";
 
   const title = item.snippet!.title!;
   const channelName = item.snippet!.channelTitle!;
@@ -42,6 +43,10 @@ export async function getVideoInfo(id: string) {
 
   if (isNotVideo) {
     throw new SongManagerError("livestreams and upcoming videos are not supported");
+  }
+
+  if (isUnlisted) {
+    throw new SongManagerError("unlisted videos are not supported");
   }
 
   return { views, duration, title, channelName, thumbnail };
