@@ -6,6 +6,7 @@ import { SongManagerError } from "@lib/manager.js";
 import type { Context } from "@lib/router.js";
 import { app } from "@root/index.js";
 import { songs } from "@root/songs.js";
+import { random } from "@root/utils/random.js";
 import { getUser, GetUserError, type HelixUser } from "@utils/getUser.js";
 import { logger } from "@utils/loggers.js";
 import { QueryFailedError } from "typeorm";
@@ -39,7 +40,7 @@ export function handleCount(ctx: Context) {
 }
 
 export function handleRandom({ room, tags, manager }: Context) {
-  const song = songs[Math.floor(Math.random() * songs.length)];
+  const song = songs[random(0, songs.length)];
 
   const id = ytdl.getURLVideoID(song);
 
