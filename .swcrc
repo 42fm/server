@@ -1,13 +1,22 @@
 {
   "$schema": "https://swc.rs/schema.json",
+  "module": {
+    "type": "es6",
+    "resolveFully": true
+  },
   "jsc": {
     "target": "esnext",
     "parser": {
       "decorators": true,
       "syntax": "typescript"
     },
+    "transform": {
+      "legacyDecorator": true,
+      "decoratorMetadata": true
+    },
     "baseUrl": ".",
     "paths": {
+      "@api/*": ["./src/api/*"],
       "@bot/*": ["./src/bot/*"],
       "@commands/*": ["./src/commands/*"],
       "@config/*": ["./src/config/*"],
@@ -15,6 +24,7 @@
       "@db/*": ["./src/db/*"],
       "@lib/*": ["./src/lib/*"],
       "@middleware/*": ["./src/middleware/*"],
+      "@root/*": ["./src/*"],
       "@routes/*": ["./src/routes/*"],
       "@services/*": ["./src/services/*"],
       "@utils/*": ["./src/utils/*"]

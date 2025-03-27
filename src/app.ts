@@ -105,7 +105,7 @@ class App {
         logger.info(`Server started on port ${PORT}`);
       });
     } catch (error) {
-      logger.crit(error);
+      logger.error(error);
       process.exit(1);
     }
   }
