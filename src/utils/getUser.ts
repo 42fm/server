@@ -10,7 +10,7 @@ export class GetUserError extends Error {
   }
 }
 
-export async function getUser(username: string | undefined) {
+export async function getTwitchUser(username: string | undefined) {
   if (!username) {
     throw new GetUserError("Username is required");
   }

@@ -7,7 +7,7 @@ import type { Context } from "@lib/router.js";
 import { app } from "@root/index.js";
 import { songs } from "@root/songs.js";
 import { random } from "@root/utils/random.js";
-import { getUser, GetUserError, type HelixUser } from "@utils/getUser.js";
+import { getTwitchUser, GetUserError, type HelixUser } from "@utils/getUser.js";
 import { logger } from "@utils/loggers.js";
 import { QueryFailedError } from "typeorm";
 import ytdl from "ytdl-core";
@@ -235,7 +235,7 @@ export async function handleBan(ctx: Context, args: string[]) {
   let user: HelixUser | undefined;
 
   try {
-    user = await getUser(args[0]);
+    user = await getTwitchUser(args[0]);
   } catch (err) {
     if (err instanceof GetUserError) {
       ctx.responder.respondWithMention(err.message);
@@ -267,7 +267,7 @@ export async function handleUnban(ctx: Context, args: string[]) {
   let user: HelixUser | undefined;
 
   try {
-    user = await getUser(args[0]);
+    user = await getTwitchUser(args[0]);
   } catch (err) {
     if (err instanceof GetUserError) {
       ctx.responder.respondWithMention(err.message);
