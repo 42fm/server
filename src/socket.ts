@@ -83,7 +83,7 @@ function joinRoomHandler(io: ServerType, socket: SocketType): ({ room }: { room:
 
     const room = data.room.toLowerCase();
 
-    const user = await User.findOne({ where: { username: room } });
+    const user = await User.findOne({ where: { username: room, channel: { isEnabled: true } } });
 
     if (!user) {
       logger.info("Not enabled on channel", { room });
