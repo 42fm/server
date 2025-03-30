@@ -1,3 +1,4 @@
+import { client } from "@config/tmi.js";
 import { Settings } from "@db/entity/Settings.js";
 import { User } from "@db/entity/User.js";
 import connection from "@db/index.js";
@@ -71,6 +72,7 @@ export async function handleEnable(ctx: Context, args: string[]) {
 
   try {
     await user.save();
+    await client.part(user.username);
     ctx.responder.respondWithMention("channel disabled successfully");
   } catch (error) {
     logger.error(error);
@@ -103,6 +105,7 @@ export async function handleDisable(ctx: Context, args: string[]) {
 
   try {
     await user.save();
+    await client.join(user.username);
     ctx.responder.respondWithMention("channel disabled successfully");
   } catch (error) {
     logger.error(error);
