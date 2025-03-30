@@ -1,4 +1,4 @@
-import { redisClient } from "@db/redis.js";
+import { incrementKey } from "@root/services/ratelimit.js";
 
 class RateLimiter {
   time: number;
@@ -10,15 +10,9 @@ class RateLimiter {
   }
 
   async consume(key: string) {
-    const res = await redisClient
-      .multi()
-      .incr("ratelimit:" + key)
-      .expire("ratelimit:" + key, this.time)
-      .exec();
+    const res = await incrementKey(key, this.time);
 
-    const [, inc] = res![0] as [Error, number];
-
-    return inc > this.max;
+    return res > this.max;
   }
 }
 
