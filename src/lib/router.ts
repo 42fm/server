@@ -37,7 +37,7 @@ export class Router<T = Context, K extends string = string> {
     const router = this.routes.get(name);
 
     if (!router) {
-      throw new Error("Router not found");
+      throw new Error(`Router not found: ${name}`);
     }
 
     router.router = nextRouter;

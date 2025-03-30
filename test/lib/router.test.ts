@@ -95,6 +95,6 @@ describe("router", () => {
     const router = new Router<null>();
     const nextRouter = new Router<null>();
 
-    assert.throws(() => router.registerNextRouter("!help", nextRouter), new Error("Router not found"));
+    assert.throws(() => router.registerNextRouter("!help", nextRouter), new Error("Router not found: !help"));
   });
 });
