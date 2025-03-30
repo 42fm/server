@@ -232,17 +232,10 @@ export async function handleVoteskip(ctx: Context) {
 }
 
 export async function handleBan(ctx: Context, args: string[]) {
-  let user: HelixUser | undefined;
+  const user = await getTwitchUser(args[0]);
 
-  try {
-    user = await getTwitchUser(args[0]);
-  } catch (err) {
-    if (err instanceof GetUserError) {
-      ctx.responder.respondWithMention(err.message);
-    } else {
-      logger.error(err);
-      ctx.responder.respondWithMention("Could not get user");
-    }
+  if (!user) {
+    ctx.responder.respondWithMention("Could not get user");
     return;
   }
 
@@ -264,19 +257,7 @@ export async function handleBan(ctx: Context, args: string[]) {
 }
 
 export async function handleUnban(ctx: Context, args: string[]) {
-  let user: HelixUser | undefined;
-
-  try {
-    user = await getTwitchUser(args[0]);
-  } catch (err) {
-    if (err instanceof GetUserError) {
-      ctx.responder.respondWithMention(err.message);
-    } else {
-      logger.error(err);
-      ctx.responder.respondWithMention("Could not get user");
-    }
-    return;
-  }
+  const user = await getTwitchUser(args[0]);
 
   if (!user) {
     ctx.responder.respondWithMention("User not found");

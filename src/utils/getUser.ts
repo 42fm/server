@@ -1,38 +1,39 @@
-import axios from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { getAppAccessToken } from "./appAccessToken.js";
+import { logger } from "./loggers.js";
 
 const { TWITCH_CLIENT_ID } = process.env;
 
 export class GetUserError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "GetUserError";
-  }
+  name = "GetUserError";
 }
 
-export async function getTwitchUser(username: string | undefined) {
-  if (!username) {
-    throw new GetUserError("Username is required");
-  }
-
+export async function getTwitchUser(username: string) {
   const token = await getAppAccessToken();
 
   if (!token) {
-    throw new GetUserError("Could not get app access token");
+    return;
   }
 
-  const response = await axios.get<HelixUsersResponse>(
-    "https://api.twitch.tv/helix/users?" + new URLSearchParams([["login", username]]).toString(),
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Client-ID": TWITCH_CLIENT_ID,
-      },
-    }
-  );
+  let response: AxiosResponse<HelixUsersResponse> | undefined;
+
+  try {
+    response = await axios.get<HelixUsersResponse>(
+      "https://api.twitch.tv/helix/users?" + new URLSearchParams([["login", username]]).toString(),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Client-ID": TWITCH_CLIENT_ID,
+        },
+      }
+    );
+  } catch {
+    logger.error("Could not get twitch token");
+    return;
+  }
 
   if (response.data.data.length === 0) {
-    throw new GetUserError("User not found");
+    return;
   }
 
   return response.data.data[0];
