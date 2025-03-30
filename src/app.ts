@@ -62,26 +62,6 @@ class App {
     this.app.use(eventsRouter);
   }
 
-  async initClient() {
-    try {
-      const users = await getUsersWithEnabledChannel();
-
-      for (const user of users) {
-        try {
-          await client.join(user.username);
-          logger.info("Joined channel", { channel: user.username });
-          await sleep(600);
-        } catch (error) {
-          logger.warn(error);
-        }
-      }
-
-      logger.debug("Connected to channels from database");
-    } catch (error) {
-      logger.error("Error while connecting to channels", { error });
-    }
-  }
-
   async start() {
     const { PORT, NODE_ENV, RENDER_GIT_COMMIT, TWITCH_USERNAME } = process.env;
 
@@ -123,7 +103,7 @@ async function connectToChannels() {
         logger.info("Joined channel", { channel: user.username });
         await sleep(600);
       } catch (error) {
-        logger.warn(error);
+        logger.warn("Failed to join channel", { error, channel: user.username });
       }
     }
 
