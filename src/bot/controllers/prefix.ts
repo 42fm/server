@@ -1,3 +1,4 @@
+import { connectionsRouter } from "@bot/routes/connections.js";
 import { setRouter } from "@bot/routes/set.js";
 import { client } from "@config/tmi.js";
 import { Ban } from "@db/entity/Ban.js";
@@ -7,7 +8,7 @@ import type { Context } from "@lib/router.js";
 import { app } from "@root/index.js";
 import { songs } from "@root/songs.js";
 import { random } from "@root/utils/random.js";
-import { getTwitchUser, GetUserError, type HelixUser } from "@utils/getUser.js";
+import { getTwitchUser } from "@utils/getUser.js";
 import { logger } from "@utils/loggers.js";
 import { QueryFailedError } from "typeorm";
 import ytdl from "ytdl-core";
@@ -30,13 +31,11 @@ export function handleUptime(ctx: Context) {
 
 export function handleChannels(ctx: Context) {
   const channels = client.getChannels().map((channel) => channel.slice(1));
-  ctx.responder.respond(`Connected channels: ${channels.join(", ")}`);
+  ctx.responder.respond(`Connected to ${channels.length} channels: ${channels.join(", ")}`);
 }
 
-export function handleCount(ctx: Context) {
-  const count = client.getChannels().length;
-
-  ctx.responder.respond(`Connected channels: ${count}`);
+export function handleConnections(ctx: Context) {
+  ctx.responder.respondWithMention("available commands: " + Array.from(connectionsRouter.routes.keys()).join(", "));
 }
 
 export function handleRandom({ room, tags, manager }: Context) {
@@ -67,12 +66,6 @@ export async function handleTimer({ room, tags, manager }: Context) {
   } catch (err) {
     logger.error(err);
   }
-}
-
-export async function handleWs(ctx: Context) {
-  const count = await app.io.fetchSockets();
-
-  ctx.responder.respond(`Connected ws: ${count.length}`);
 }
 
 export function handlePing(ctx: Context) {
