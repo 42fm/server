@@ -29,7 +29,7 @@ This repository contains the backend server for the [42FM browser extension](htt
 1. Build and start the containers
 
    ```sh
-   docker compose up --rebuild
+   docker compose up --build --watch
    ```
 
 ## Related Projects

@@ -7,8 +7,13 @@ services:
     command: yarn dev:docker
     ports:
       - "5000:5000"
-    volumes:
-      - ./:/app
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./
+          target: /app
+          ignore:
+            - node_modules
     environment:
       - REDIS_URL=redis://redis:6379/0
       - DB_HOST=postgres

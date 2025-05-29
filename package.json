@@ -8,7 +8,7 @@
   "scripts": {
     "common": "node --no-warnings --enable-source-maps --experimental-test-module-mocks --import @swc-node/register/esm-register",
     "dev": "yarn common --watch --env-file=.env src/index.ts",
-    "dev:docker": "yarn common --watch src/index.ts",
+    "dev:docker": "yarn common src/index.ts",
     "start": "node ./dist/index.js",
     "build": "yarn typecheck && yarn clean && swc src -d dist --strip-leading-paths",
     "clean": "rm -rf dist",
