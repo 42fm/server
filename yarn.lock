@@ -5,6 +5,60 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
+"42fm-server@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "42fm-server@workspace:."
+  dependencies:
+    "@bleed-believer/path-alias": "npm:^2.2.1"
+    "@eslint/js": "npm:^9.21.0"
+    "@googleapis/youtube": "npm:^16.1.0"
+    "@socket.io/admin-ui": "npm:^0.5.1"
+    "@swc-node/register": "npm:^1.10.9"
+    "@swc/cli": "npm:^0.6.0"
+    "@swc/core": "npm:^1.11.7"
+    "@types/cookie-parser": "npm:^1.4.8"
+    "@types/cors": "npm:^2.8.17"
+    "@types/express": "npm:^4.17.21"
+    "@types/ioredis-mock": "npm:^8.2.5"
+    "@types/jsonwebtoken": "npm:^9.0.9"
+    "@types/morgan": "npm:^1.9.9"
+    "@types/node": "npm:^22.13.9"
+    "@types/tmi.js": "npm:^1.8.6"
+    "@types/ws": "npm:^8.18.0"
+    "@typescript-eslint/eslint-plugin": "npm:^8.26.0"
+    "@typescript-eslint/parser": "npm:^8.26.0"
+    axios: "npm:^1.8.2"
+    cookie-parser: "npm:^1.4.7"
+    cors: "npm:^2.8.5"
+    dotenv: "npm:^16.4.7"
+    eslint: "npm:^9.21.0"
+    express: "npm:^4.21.2"
+    globals: "npm:^15.15.0"
+    ioredis: "npm:^5.6.0"
+    ioredis-mock: "npm:^8.9.0"
+    iso8601-duration: "npm:^2.1.2"
+    jsonwebtoken: "npm:^9.0.2"
+    morgan: "npm:^1.10.0"
+    pg: "npm:^8.13.3"
+    reflect-metadata: "npm:^0.2.2"
+    socket.io: "npm:^4.8.1"
+    socket.io-client: "npm:^4.8.1"
+    tmi.js: "npm:^1.8.5"
+    ts-node: "npm:^10.9.2"
+    ts-node-dev: "npm:^2.0.0"
+    tsc-alias: "npm:^1.8.11"
+    tsconfig-paths: "npm:^4.2.0"
+    typeorm: "npm:^0.3.21"
+    typescript: "npm:^5.8.2"
+    typescript-eslint: "npm:^8.26.0"
+    why-is-node-running: "npm:^3.2.2"
+    winston: "npm:^3.17.0"
+    ws: "npm:^8.18.1"
+    ytdl-core: "npm:^4.11.5"
+    zod: "npm:^3.24.2"
+  languageName: unknown
+  linkType: soft
+
 "@bleed-believer/commander@npm:^0.11.3":
   version: 0.11.3
   resolution: "@bleed-believer/commander@npm:0.11.3"
@@ -5593,60 +5647,6 @@ __metadata:
   checksum: 10c0/9db2c02b01be44a97e447061958565ceb8faf33a241cf9c030d5f1ebefff74434b66090985f5a75189a514aae2267999851c281b8cd8dc8cd93dd158b1033319
   languageName: node
   linkType: hard
-
-"twitch-music-server@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "twitch-music-server@workspace:."
-  dependencies:
-    "@bleed-believer/path-alias": "npm:^2.2.1"
-    "@eslint/js": "npm:^9.21.0"
-    "@googleapis/youtube": "npm:^16.1.0"
-    "@socket.io/admin-ui": "npm:^0.5.1"
-    "@swc-node/register": "npm:^1.10.9"
-    "@swc/cli": "npm:^0.6.0"
-    "@swc/core": "npm:^1.11.7"
-    "@types/cookie-parser": "npm:^1.4.8"
-    "@types/cors": "npm:^2.8.17"
-    "@types/express": "npm:^4.17.21"
-    "@types/ioredis-mock": "npm:^8.2.5"
-    "@types/jsonwebtoken": "npm:^9.0.9"
-    "@types/morgan": "npm:^1.9.9"
-    "@types/node": "npm:^22.13.9"
-    "@types/tmi.js": "npm:^1.8.6"
-    "@types/ws": "npm:^8.18.0"
-    "@typescript-eslint/eslint-plugin": "npm:^8.26.0"
-    "@typescript-eslint/parser": "npm:^8.26.0"
-    axios: "npm:^1.8.2"
-    cookie-parser: "npm:^1.4.7"
-    cors: "npm:^2.8.5"
-    dotenv: "npm:^16.4.7"
-    eslint: "npm:^9.21.0"
-    express: "npm:^4.21.2"
-    globals: "npm:^15.15.0"
-    ioredis: "npm:^5.6.0"
-    ioredis-mock: "npm:^8.9.0"
-    iso8601-duration: "npm:^2.1.2"
-    jsonwebtoken: "npm:^9.0.2"
-    morgan: "npm:^1.10.0"
-    pg: "npm:^8.13.3"
-    reflect-metadata: "npm:^0.2.2"
-    socket.io: "npm:^4.8.1"
-    socket.io-client: "npm:^4.8.1"
-    tmi.js: "npm:^1.8.5"
-    ts-node: "npm:^10.9.2"
-    ts-node-dev: "npm:^2.0.0"
-    tsc-alias: "npm:^1.8.11"
-    tsconfig-paths: "npm:^4.2.0"
-    typeorm: "npm:^0.3.21"
-    typescript: "npm:^5.8.2"
-    typescript-eslint: "npm:^8.26.0"
-    why-is-node-running: "npm:^3.2.2"
-    winston: "npm:^3.17.0"
-    ws: "npm:^8.18.1"
-    ytdl-core: "npm:^4.11.5"
-    zod: "npm:^3.24.2"
-  languageName: unknown
-  linkType: soft
 
 "type-check@npm:^0.4.0, type-check@npm:~0.4.0":
   version: 0.4.0

@@ -1,5 +1,5 @@
 {
-  "name": "twitch-music-server",
+  "name": "42fm-server",
   "version": "1.0.0",
   "main": "dist/index.js",
   "type": "module",
