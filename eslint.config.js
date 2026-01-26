@@ -3,7 +3,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 /**
- * @type {import('eslint').Linter.FlatConfig[]}
+ * @type {import('eslint').Linter.Config[]}
  */
 export default [
   { languageOptions: { globals: globals.nodeBuiltin } },
