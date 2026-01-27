@@ -6,6 +6,8 @@ types/*
 combined.log
 error.log
 /dist
+/certs
+/docs
 
 # yarn (zero install ignores, even though we don't use it, it allows for faster installs)
 .yarn/*
