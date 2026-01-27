@@ -14,7 +14,6 @@ export const client = new tmi.Client({
   },
   connection: {
     reconnect: NODE_ENV === "production",
-    secure: NODE_ENV === "production",
   },
   identity: {
     username: TWITCH_USERNAME,
