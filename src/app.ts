@@ -1,4 +1,4 @@
-import morganMiddleware from "@api/middleware/morgan.js";
+import { winstonMiddleware } from "@api/middleware/logger.js";
 import { eventsRouter } from "@api/routes/events.js";
 import { healthRouter } from "@api/routes/health.js";
 import { client } from "@config/tmi.js";
@@ -53,7 +53,7 @@ class App {
         credentials: true,
       })
     );
-    this.app.use(morganMiddleware);
+    this.app.use(winstonMiddleware);
     this.app.use(cookieParser());
   }
 
