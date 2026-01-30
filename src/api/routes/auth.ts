@@ -6,4 +6,4 @@ const router = Router();
 router.get("/twitch", twitchHandler);
 router.get("/twitch/mobile", twitchMobileHandler);
 
-export default router;
+export { router as authRouter };

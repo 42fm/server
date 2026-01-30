@@ -15,6 +15,7 @@ import { createServer, type Server as HttpServer } from "http";
 import type { Server as IoServer } from "socket.io";
 import type { Client } from "tmi.js";
 import { createSocketServer } from "./socket.js";
+import { authRouter } from "@api/routes/auth.js";
 
 class App {
   app: Application;
@@ -59,6 +60,7 @@ class App {
 
   initRoutes() {
     this.app.use(healthRouter);
+    this.app.use(authRouter);
     this.app.use(eventsRouter);
   }
 
