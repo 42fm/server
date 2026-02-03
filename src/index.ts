@@ -31,26 +31,26 @@ async function handleMessage(pattern: string, channel: string, message: string) 
 }
 
 async function gracefulShutdown(signal: NodeJS.Signals) {
+  if (signal !== "SIGTERM") return;
   logger.info(`Received ${signal} signal, shuting down`);
 
-  app.io.close(async () => {
-    logger.info("HTTP server closed");
+  await app.io.close();
+  logger.info("HTTP server closed");
 
-    await app.client.disconnect();
-    logger.info("Disconnected twitch client");
+  await app.client.disconnect();
+  logger.info("Disconnected twitch client");
 
-    await connection.destroy();
-    logger.info("PostgreSQL connection closed");
+  await connection.destroy();
+  logger.info("PostgreSQL connection closed");
 
-    await redisClient.quit();
-    logger.info("Redis connection closed");
+  await redisClient.quit();
+  logger.info("Redis connection closed");
 
-    await sub.quit();
-    logger.info("Redis Sub connection closed");
+  await sub.quit();
+  logger.info("Redis Sub connection closed");
 
-    logger.info("Exiting");
-    process.exit(0);
-  });
+  logger.info("Exiting");
+  process.exit(0);
 }
 
 async function clientMessageHandler(channel: string, tags: ChatUserstate, message: string, self: boolean) {
