@@ -31,16 +31,21 @@ async function handleMessage(pattern: string, channel: string, message: string) 
 }
 
 async function gracefulShutdown(signal: NodeJS.Signals) {
-  logger.info(`Received ${signal}. Starting graceful shutdown...`);
+  logger.info(`Received ${signal} signal, shuting down`);
+
   app.io.close(async () => {
-    logger.info("Http server closed...");
+    logger.info("HTTP server closed");
+
     await connection.destroy();
-    logger.info("PostgreSQL connection closed...");
+    logger.info("PostgreSQL connection closed");
+
     await redisClient.quit();
-    logger.info("Redis connection closed...");
+    logger.info("Redis connection closed");
+
     await sub.quit();
-    logger.info("Redis Sub connection closed...");
-    logger.info("Exiting...");
+    logger.info("Redis Sub connection closed");
+
+    logger.info("Exiting");
     process.exit(0);
   });
 }
