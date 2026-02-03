@@ -35,7 +35,7 @@ export function createSocketServer(httpServer: HttpServer) {
     childLogger.info("New socket connection");
 
     socket.on("error", (err) => {
-      childLogger.info("socket error", err);
+      childLogger.error("socket error", err);
     });
     socket.on("joinRoom", joinRoomHandler(io, socket));
     socket.on("sync", syncHandler(io, socket));
