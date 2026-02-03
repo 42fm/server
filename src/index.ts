@@ -36,6 +36,9 @@ async function gracefulShutdown(signal: NodeJS.Signals) {
   app.io.close(async () => {
     logger.info("HTTP server closed");
 
+    await app.client.disconnect();
+    logger.info("Disconnected twitch client");
+
     await connection.destroy();
     logger.info("PostgreSQL connection closed");
 
