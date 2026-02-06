@@ -48,7 +48,7 @@ export async function handleCommand({ responder, room, tags, manager }: Context,
     const exceedsLimit = await limiter.consume(tags["user-id"]!);
 
     if (exceedsLimit) {
-      responder.respondWithMention("search ratelimit exceeded, use a link to add a song");
+      responder.respondWithMention("search limit exceeded, use a link to add a song");
       return;
     }
 
