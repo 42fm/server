@@ -2,6 +2,7 @@
 types/*
 
 .env
+.env.staging.local
 .env.production.local
 combined.log
 error.log
