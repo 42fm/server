@@ -1,6 +1,6 @@
 import { youtubeApi } from "@config/youtube.js";
 import { SongManagerError } from "@lib/manager.js";
-import { parse, toSeconds } from "iso8601-duration";
+import { Temporal } from "@js-temporal/polyfill";
 
 export async function getVideoInfo(id: string) {
   const videoResponse = await youtubeApi.videos.list({

@@ -6,6 +6,7 @@ import { logger } from "@utils/loggers.js";
 import { parseTags } from "@utils/tagsParser.js";
 import type { Server } from "socket.io";
 import type { ChatUserstate } from "tmi.js";
+import { Temporal } from "@js-temporal/polyfill";
 
 /**
  * The purpose of this custom error is to catch them later and display the message to the user, but in case of a regular error we don't want to display anything.
@@ -36,13 +37,20 @@ export class SongManager implements SongManagerI {
 
     if (!(isBroadcaster || isMod || isOwner)) {
       if (views < user.settings.minViews) {
-        throw new SongManagerError(`song must have at least ${user.settings.minViews} views`);
+        const formatter = new Intl.NumberFormat("en", {
+          notation: "compact",
+          compactDisplay: "short",
+        });
+
+        throw new SongManagerError(`minimum number of views is ${formatter.format(user.settings.minViews)}`);
       }
       if (duration < user.settings.minDuration) {
-        throw new SongManagerError(`video must be at least ${user.settings.minDuration} seconds long`);
+        const temporalDuration = Temporal.Duration.from({ seconds: user.settings.minDuration });
+        throw new SongManagerError(`minimum duration is ${temporalDuration.toLocaleString()} long`);
       }
       if (duration > user.settings.maxDuration) {
-        throw new SongManagerError(`song too long, max duration is ${user.settings.maxDuration} seconds`);
+        const temporalDuration = Temporal.Duration.from({ seconds: user.settings.maxDuration });
+        throw new SongManagerError(`maximum duration is ${temporalDuration.toLocaleString()} long`);
       }
     }
 

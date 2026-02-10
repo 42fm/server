@@ -3,6 +3,7 @@ import { type Context } from "@lib/router.js";
 import { getUserWithSettings } from "@services/user.js";
 import { getAppAccessToken } from "@utils/appAccessToken.js";
 import axios from "axios";
+import { Temporal } from "@js-temporal/polyfill";
 
 export async function handleMinViews(ctx: Context, args: string[]) {
   if (args[0] === undefined) {
@@ -55,7 +56,7 @@ export async function handleMinDuration(ctx: Context, args: string[]) {
 
   await user.settings.save();
 
-  ctx.responder.respond(`Minimum duration changed to ${num} seconds`);
+  ctx.responder.respond(`Minimum duration changed to ${Temporal.Duration.from({seconds: num}).toLocaleString()}`);
 }
 
 export async function handleMaxDuration(ctx: Context, args: string[]) {
@@ -82,7 +83,7 @@ export async function handleMaxDuration(ctx: Context, args: string[]) {
 
   await user.settings.save();
 
-  ctx.responder.respond(`Maximum duration changed to ${num} seconds`);
+  ctx.responder.respond(`Maximum duration changed to ${Temporal.Duration.from({seconds: num}).toLocaleString()}`);
 }
 
 export async function handleStreamSync(ctx: Context, args: string[]) {
