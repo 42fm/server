@@ -38,7 +38,6 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "ioredis": "^5.9.2",
-    "iso8601-duration": "^2.1.3",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.17.2",
     "reflect-metadata": "^0.2.2",

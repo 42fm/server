@@ -29,7 +29,7 @@ export async function getVideoInfo(id: string) {
   const title = item.snippet!.title!;
   const channelName = item.snippet!.channelTitle!;
   const views = Number(item.statistics!.viewCount);
-  const duration = toSeconds(parse(item.contentDetails!.duration!));
+  const duration = Temporal.Duration.from(item.contentDetails!.duration!).total({ unit: "seconds" });
 
   const thumbnail = channelItem.snippet!.thumbnails!.default!.url!;
 
