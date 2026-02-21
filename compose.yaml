@@ -12,6 +12,9 @@ services:
         - action: sync+restart
           path: ./
           target: /app
+        - action: rebuild
+          path: ./package.json
+          target: /app
     environment:
       - REDIS_URL=redis://redis:6379/0
       - DB_HOST=postgres
