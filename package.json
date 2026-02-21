@@ -16,6 +16,7 @@
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --check ./src/**/*.ts",
+    "format:fix": "prettier ./src/**/*.ts",
     "test": "yarn common --test test/**/*.test.ts",
     "test:dev": "yarn common --test test/**/*.test.ts",
     "migration:generate": "yarn build && typeorm-ts-node-esm migration:generate --pretty -d src/db/index.ts",
