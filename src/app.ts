@@ -87,7 +87,7 @@ class App {
         logger.info(`Server started on port ${PORT}`);
       });
     } catch (error) {
-      logger.error(error);
+      logger.error("initialization error", { error });
       process.exit(1);
     }
   }
