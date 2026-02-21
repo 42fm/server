@@ -14,7 +14,6 @@
     "sourceMap": true,
     "outDir": "dist",
     "rootDirs": ["src", "test"],
-    "baseUrl": ".",
     "strict": true,
     "paths": {
       "@api/*": ["./src/api/*"],
