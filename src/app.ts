@@ -39,7 +39,7 @@ class App {
           }
           return target[val];
         },
-      }
+      },
     );
 
     this.client = client;
@@ -52,7 +52,7 @@ class App {
       cors({
         // origin: URL,
         credentials: true,
-      })
+      }),
     );
     this.app.use(winstonMiddleware);
     this.app.use(cookieParser());
