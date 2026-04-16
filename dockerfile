@@ -7,7 +7,6 @@ COPY yarn.lock .
 COPY .yarnrc.yml .
 
 RUN corepack enable
-RUN yarn set version berry
 RUN yarn install --immutable
 
 COPY . .
