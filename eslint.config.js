@@ -9,10 +9,13 @@ export default [
   {
     languageOptions: {
       globals: globals.nodeBuiltin,
+      parserOptions: {
+        projectService: true,
+      },
     },
   },
   pluginJs.configs.recommended,
-  ...tseslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
   {
     rules: {
       "@typescript-eslint/no-unused-vars": "warn",
