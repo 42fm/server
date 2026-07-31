@@ -58,9 +58,9 @@ export class Router<T = Context, K extends string = string> {
     }
 
     if (router !== undefined && idx !== segments.length - 1 && router.routes.has(segments[idx + 1])) {
-      router.route(ctx, segments, idx + 1);
+      await router.route(ctx, segments, idx + 1);
     } else {
-      cb(ctx, segments.slice(idx + 1, segments.length), () => {
+      await cb(ctx, segments.slice(idx + 1, segments.length), () => {
         throw new Error("Can't invoke next in the final segment");
       });
     }
