@@ -27,7 +27,7 @@ async function handleMessage(pattern: string, channel: string, message: string) 
 
   const [, room] = channel.split(":");
 
-  app.manager[room].playNextSong(room);
+  await app.manager[room].playNextSong(room);
 }
 
 async function gracefulShutdown(signal: NodeJS.Signals) {

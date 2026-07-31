@@ -38,13 +38,13 @@ export function handleConnections(ctx: Context) {
   ctx.responder.respondWithMention("available commands: " + Array.from(connectionsRouter.routes.keys()).join(", "));
 }
 
-export function handleRandom({ room, tags, manager }: Context) {
+export async function handleRandom({ room, tags, manager }: Context) {
   const song = songs[random(0, songs.length)];
 
   const id = ytdl.getURLVideoID(song);
 
   try {
-    manager.add({
+    await manager.add({
       id,
       room,
       tags,
@@ -120,13 +120,13 @@ export async function handleWrong({ responder, room, tags, manager }: Context) {
     return;
   }
 
-  redisClient.lrem(`${room}:playlist`, -1, JSON.stringify(found));
+  await redisClient.lrem(`${room}:playlist`, -1, JSON.stringify(found));
 
   responder.respondWithMention(`removed your last song`);
 }
 
 export async function handleClear(ctx: Context) {
-  redisClient
+  await redisClient
     .multi()
     .del(`${ctx.room}:current`)
     .del(`${ctx.room}:playlist`)
@@ -139,12 +139,12 @@ export async function handleClear(ctx: Context) {
 
 export async function handleDiconnect(ctx: Context) {
   ctx.responder.respondWithMention(`disconnecting... :(`);
-  client.part(ctx.room);
+  await client.part(ctx.room);
 }
 
 export async function handleSkip(ctx: Context) {
   try {
-    ctx.manager.skip(ctx.room);
+    await ctx.manager.skip(ctx.room);
     ctx.responder.respondWithMention("skipping...");
   } catch (err) {
     if (err instanceof SongManagerError) {
@@ -156,9 +156,9 @@ export async function handleSkip(ctx: Context) {
   }
 }
 
-export function handlePlay(ctx: Context) {
+export async function handlePlay(ctx: Context) {
   try {
-    ctx.manager.play(ctx.room);
+    await ctx.manager.play(ctx.room);
     ctx.responder.respondWithMention("Playing");
   } catch (err) {
     if (err instanceof SongManagerError) {
@@ -170,9 +170,9 @@ export function handlePlay(ctx: Context) {
   }
 }
 
-export function handlePause(ctx: Context) {
+export async function handlePause(ctx: Context) {
   try {
-    ctx.manager.pause(ctx.room);
+    await ctx.manager.pause(ctx.room);
     ctx.responder.respondWithMention("Paused");
   } catch (err) {
     if (err instanceof SongManagerError) {
@@ -217,7 +217,7 @@ export async function handleVoteskip(ctx: Context) {
 
   if (totalVotes >= thresholdVotes) {
     await redisClient.del(`${ctx.room}:votes`);
-    ctx.manager.skip(ctx.room);
+    await ctx.manager.skip(ctx.room);
     ctx.responder.respond(`${totalVotes}/${thresholdVotes} votes, skipping...`);
   } else {
     ctx.responder.respond(`${totalVotes}/${thresholdVotes} votes`);
