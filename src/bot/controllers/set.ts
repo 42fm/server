@@ -56,7 +56,7 @@ export async function handleMinDuration(ctx: Context, args: string[]) {
 
   await user.settings.save();
 
-  ctx.responder.respond(`Minimum duration changed to ${Temporal.Duration.from({seconds: num}).toLocaleString()}`);
+  ctx.responder.respond(`Minimum duration changed to ${Temporal.Duration.from({ seconds: num }).toLocaleString()}`);
 }
 
 export async function handleMaxDuration(ctx: Context, args: string[]) {
@@ -83,7 +83,7 @@ export async function handleMaxDuration(ctx: Context, args: string[]) {
 
   await user.settings.save();
 
-  ctx.responder.respond(`Maximum duration changed to ${Temporal.Duration.from({seconds: num}).toLocaleString()}`);
+  ctx.responder.respond(`Maximum duration changed to ${Temporal.Duration.from({ seconds: num }).toLocaleString()}`);
 }
 
 export async function handleStreamSync(ctx: Context, args: string[]) {
@@ -169,7 +169,7 @@ async function subscribeToStream(id: string, room: string, token: string) {
         Authorization: `Bearer ${token}`,
         "Client-ID": process.env.TWITCH_CLIENT_ID,
       },
-    }
+    },
   );
 
   if (responseStreamOnline.status !== 202) {
@@ -197,7 +197,7 @@ async function subscribeToStream(id: string, room: string, token: string) {
         Authorization: `Bearer ${token}`,
         "Client-ID": process.env.TWITCH_CLIENT_ID,
       },
-    }
+    },
   );
 
   if (responseStreamOffline.status !== 202) {
