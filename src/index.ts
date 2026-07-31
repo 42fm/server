@@ -13,11 +13,11 @@ import { App } from "./app.js";
 
 const { COMMAND_PREFIX } = process.env;
 
-client.on("chat", clientMessageHandler);
+client.on("chat", (...args) => void clientMessageHandler(...args));
 
-sub.on("pmessage", handleMessage);
+sub.on("pmessage", (...args) => void handleMessage(...args));
 
-process.on("SIGTERM", gracefulShutdown);
+process.on("SIGTERM", (...args) => void gracefulShutdown(...args));
 
 export const app = new App();
 app.start();

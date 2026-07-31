@@ -80,7 +80,7 @@ class App {
       await connectToChannels();
 
       if (NODE_ENV === "production") {
-        this.client.say(TWITCH_USERNAME!, `version ${RENDER_GIT_COMMIT!.slice(0, 7)} is live`);
+        void this.client.say(TWITCH_USERNAME!, `version ${RENDER_GIT_COMMIT!.slice(0, 7)} is live`);
       }
 
       this.httpServer.listen(PORT, () => {

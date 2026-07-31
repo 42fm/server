@@ -21,10 +21,10 @@ export class Responder {
   }
 
   respondWithMention(message: string) {
-    this.queue.add(() => this.client.say(this.room, `@${this.tags["display-name"]}, ${message}`));
+    this.queue.add(() => void this.client.say(this.room, `@${this.tags["display-name"]}, ${message}`));
   }
 
   respond(message: string) {
-    this.queue.add(() => this.client.say(this.room, message));
+    this.queue.add(() => void this.client.say(this.room, message));
   }
 }
