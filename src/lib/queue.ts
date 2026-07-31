@@ -2,7 +2,7 @@ class QueueNode {
   cb?: () => void;
   next?: QueueNode;
 
-  constructor(cb?: (() => void) | undefined, next?: QueueNode) {
+  constructor(cb?: () => void, next?: QueueNode) {
     this.cb = cb;
     this.next = next;
   }
