@@ -10,7 +10,6 @@ export interface Context {
 
 export type Args = string[];
 export type Next = () => void;
-
 type RouteMiddleware<T> = (ctx: T, args: string[], next: Next) => Promise<void> | void;
 
 interface Route<T> {
