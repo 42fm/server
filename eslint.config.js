@@ -20,6 +20,18 @@ export default [
     rules: {
       "@typescript-eslint/no-unused-vars": "warn",
       "prefer-const": "warn",
+      "@typescript-eslint/no-floating-promises": [
+        "error",
+        {
+          allowForKnownSafeCalls: [
+            {
+              from: "package",
+              name: ["it", "describe"],
+              package: "node:test",
+            },
+          ],
+        },
+      ],
     },
   },
 ];
