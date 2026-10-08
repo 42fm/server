@@ -210,7 +210,10 @@ export class SongManager implements SongManagerI {
     const song = redisSongs[0][1] as string;
     const playlist = redisSongs[1][1] as string[];
 
-    if (!song) return;
+    if (!song) {
+      this.io.in(room).emit("songEnd");
+      return;
+    }
 
     const parsedSong = JSON.parse(song) as CurrentSong;
     const list = playlist.map((item) => JSON.parse(item) as Song);
