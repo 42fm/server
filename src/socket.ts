@@ -90,6 +90,8 @@ function joinRoomHandler(io: ServerType, socket: SocketType): ({ room }: { room:
       socket.emit("no42fm");
       socket.disconnect();
       return;
+    } else {
+      socket.emit("yes42fm");
     }
 
     logger.info("Joined room", { room });
